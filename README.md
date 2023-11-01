@@ -8,6 +8,34 @@
 
 nozomi.la API in Python.
 
+## Huge my own update
+Add multiprocessing and async
+Russian comments for messages
+Small changes in api file.
+Main file to launch is __init__
+
+1. Select dir to load images
+```
+save_dir = 'D:/ghd/img/'
+```
+2. Input positiv tag
+3. Black list tags
+4. Create or comment tasks for your needs.
+```
+task1 = asyncio.create_task(nozomi_tag_load(positive_tags, negative_tags))
+task2 = asyncio.create_task(nozomi_tag_load(positive_tags2, negative_tags))
+
+await task1
+await task2
+```
+5. Run and wait.
+
+- multiprocessing is 8, I didn't notice with speed with 16 pools
+```
+pool_size = 8
+```
+- original author and code https://github.com/Alfa-Q/python-nozomi
+
 ## Features
 
 - Retrieving media posts
