@@ -13,7 +13,6 @@ from .data import Post
 from .exceptions import InvalidTagFormat, InvalidUrlFormat
 from .helpers import sanitize_tag, create_tag_filepath, create_post_filepath, parse_post_id
 
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -163,6 +162,8 @@ def _get_post_ids(tag_filepath_url: str) -> List[int]:
         A list containing all of the post IDs that contain the tag.
 
     """
+    post_ids = []
+
     _LOGGER.debug('Getting post IDs from %s', tag_filepath_url)
     try:
         headers = {'Accept-Encoding': 'gzip, deflate, br', 'Content-Type': 'arraybuffer'}
