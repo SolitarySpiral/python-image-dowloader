@@ -9,10 +9,11 @@
 nozomi.la API in Python.
 
 ## Huge my own update
-Add multiprocessing and async
-Russian comments for messages
-Small changes in api file.
-Main file to launch is __init__
+- Add multiprocessing and async, you can input your favorite tags and program will download them to folders
+- Russian comments for messages
+- Small changes in api file.
+- Readable folders with `artist:Name` tags in `artist Name`
+- Main file to launch is `__init__`
 
 1. Select dir to load images
 ```
