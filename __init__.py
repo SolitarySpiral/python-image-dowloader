@@ -1,13 +1,14 @@
 """Nozomi package configuration."""
-import os
-import re
-import datetime
+import os, re, time
 from pathlib import Path
+from itertools import repeat
+from functools import partial
 # import our folder nozomi
 from nozomi import api
 
 import asyncio
 from threading import Thread
+import multiprocessing
 
 '''# Preporations and call api
 async def nozomi_tag_load(pos_tag, neg_tag = None, extra_tag = None):
@@ -30,26 +31,41 @@ async def nozomi_tag_load(pos_tag, neg_tag = None, extra_tag = None):
 
 
 async def main():
+    start = time.perf_counter()
+    print("Запущено: ", start)
+
     save_dir = 'D:/ghd/img/'
     #pool_size = 16  # your "parallelness"
     #pool = Pool(pool_size)
-    positive_tags = ['artist:imbi']#['sarah_(the_last_of_us)']
-    extra_tags = ['artist:imbi']#['artist:Xentho','sherry']#, 'lesdias','artist:IncredibleChris']['artist:imbi']
+    positive_tags = ['artist:imbi']
+    extra_tags = ['sarah_(the_last_of_us)']#['artist:Xentho','sherry']#, 'lesdias','artist:IncredibleChris']['artist:imbi']
     negative_tags = ['dragon_ball']
 
-
+    # go to dir
     string_tag = ''.join(positive_tags)
     folder_tag = re.sub(r'[;,:\s]', ' ', string_tag)
-    # Gets all posts with the tags
     if not os.path.exists(save_dir + folder_tag):
         os.makedirs(save_dir + folder_tag)
     os.chdir(save_dir + folder_tag)
     print("Текущая директория изменилась на ", os.getcwd())
-    start_time = datetime.datetime.now()
-    print(start_time, " Начата загрузка тега ", positive_tags)
-    
+    # Gets all posts with the tags
     Posts = api.get_posts_with_tags(positive_tags, negative_tags, extra_tags)
+    print("Мы получили посты")
+    print("Начата загрузка тега ", positive_tags)
+    tasks= []
+    for post in Posts:
+        tasks.append(asyncio.create_task(api.download_media(post, Path.cwd()))) #создание запросов
+        await asyncio.sleep(0)
+    await asyncio.wait(tasks)
 
+    #tasks = [asyncio.create_task(api.download_media(post, Path.cwd())) for post in Posts]
+    #results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    # the end
+    end = time.perf_counter()
+    print(f"it took: {end - start:.2f}s")
+    '''
+    # It works!
     threads = []
     for post in Posts:
         t = Thread(target=api.download_media, args=(post, Path.cwd(),))
@@ -57,12 +73,27 @@ async def main():
         t.start()
     for thread in threads:
         thread.join()
-  
-    #with multiprocessing.Pool() as pool:
-    #    for post in Posts: #api.get_posts_with_tags(positive_tags, negative_tags, extra_tags):
-    #        pool.imap_unordered(api.download_media, (post, Path.cwd(),))
-    end_time = datetime.datetime.now()
+    '''
+    # It works also
+    #loop = asyncio.get_event_loop()
+    #loop.run_until_complete(
+    #    asyncio.wait([
+    #        api.download_media(post, Path.cwd())
+    #        for post in Posts
+    #     ])
+    #)
+    #loop.close()
+    ''' # Doesn't work at all
+    with multiprocessing.Pool() as pool:
+        #for post in Posts: #api.get_posts_with_tags(positive_tags, negative_tags, extra_tags):
+        L= pool.imap(partial(api.download_media, b=Path.cwd()), Posts)
+        #pool.starmap(api.download_media, zip(Posts, repeat(Path.cwd())))
+        #pool.close
+        #pool.join
+        assert L
+        end_time = datetime.datetime.now()
     print(end_time, " Завершена загрузка тега ", positive_tags)
+    '''
     '''
     # for reload  #['loli']
     positive_tags = ['Riley_Anderson']
@@ -112,12 +143,8 @@ async def main():
 
 #main start program
 if __name__ == '__main__':
-    main_time = datetime.datetime.now()
-    print("Запущено: ", main_time)
     asyncio.run(main())
-    main_time_end = datetime.datetime.now()
-    print(main_time_end, " Завершено! Длительность: ", main_time_end - main_time)
-# the end program
+    #multiprocessing.freeze_support()
 
 
 

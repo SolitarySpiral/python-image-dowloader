@@ -5,7 +5,7 @@ import struct
 import shutil
 from pathlib import Path
 from typing import Iterable, List
-
+import asyncio
 import requests
 from dacite import from_dict
 
@@ -91,7 +91,7 @@ def get_posts_with_tags(positive_tags: List[str], negative_tags: List[str] = Non
         raise
 
 
-def download_media(post: Post, filepath: Path) -> List[str]:
+async def download_media(post: Post, filepath: Path) -> List[str]:
     """Download all media on a post and save it.
 
     Args:
@@ -105,15 +105,23 @@ def download_media(post: Post, filepath: Path) -> List[str]:
     """
     images_downloaded = []
     filepath.mkdir(parents=True, exist_ok=True)
+    #print("Мы внутри downloadmedia")
     for media_meta_data in post.imageurls:
         filename = f'{media_meta_data.dataid}.{media_meta_data.type}'
         image_filepath = filepath.joinpath(filename)
-        _download_media(media_meta_data.imageurl, image_filepath)
+        #tasks = [asyncio.create_task(_download_media(media_meta_data.imageurl, image_filepath))]
+        #done, pending = await asyncio.wait(tasks)
+        #for task in done:
+        #   result = task.result()
+        #coros = [_download_media(media_meta_data.imageurl, image_filepath)]
+        #results = await asyncio.gather(*coros, return_exceptions=True)
+        await _download_media(media_meta_data.imageurl, image_filepath)
         images_downloaded.append(filename)
+    #print("Мы закончили downloadmedia")
     return images_downloaded
 
 
-def _download_media(image_url: str, filepath: Path):
+async def _download_media(image_url: str, filepath: Path):
     """Download an image and save it.
 
     Args:
