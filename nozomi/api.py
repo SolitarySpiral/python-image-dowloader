@@ -54,7 +54,7 @@ def get_posts(urls: List[str]) -> Iterable[Post]:
         yield get_post(url)
 
 
-def get_posts_with_tags(positive_tags: List[str], negative_tags: List[str] = None) -> Iterable[Post]:
+def get_posts_with_tags(positive_tags: List[str], negative_tags: List[str] = None, extra_tags: List[str] = None) -> Iterable[Post]:
     """Retrieve all post data that contains and doesn't contain certain tags.
 
     Args:
@@ -68,12 +68,18 @@ def get_posts_with_tags(positive_tags: List[str], negative_tags: List[str] = Non
     """
     if negative_tags is None:
         negative_tags = list()
-    _LOGGER.debug('Retrieving posts with positive_tags=%s and negative_tags=%s',
-                  str(positive_tags), str(negative_tags))
+    if extra_tags is None:
+        extra_tags = list()
+    _LOGGER.debug('Retrieving posts with positive_tags=%s and negative_tags=%s and extra_tags=%s',
+                  str(positive_tags), str(negative_tags), str(extra_tags))
     try:
         positive_post_urls = _get_post_urls(positive_tags)
         negative_post_urls = _get_post_urls(negative_tags)
-        relevant_post_urls = set(positive_post_urls) - set(negative_post_urls)
+        extra_post_urls = _get_post_urls(extra_tags)
+        #relevant_post_urls = [x for x in positive_post_urls if x not in negative_post_urls]
+        relevant_post_urls = set(positive_post_urls + list(set(extra_post_urls) - set(positive_post_urls))) - set(negative_post_urls)
+        #relevant_post_urls = set(positive_post_urls) - set(negative_post_urls)
+
         for post_url in relevant_post_urls:
             post_data = requests.get(post_url).json()
             _LOGGER.debug(post_data)
@@ -124,10 +130,15 @@ def _download_media(image_url: str, filepath: Path):
         'Referer': 'https://nozomi.la/',
         'Upgrade-Insecure-Requests': '1'
     }
-    with requests.get(image_url, stream=True, headers=headers) as r:
-        with open(filepath, 'wb') as f:
-            shutil.copyfileobj(r.raw, f)
-    _LOGGER.debug('Image downloaded %s', filepath)
+    if os.path.exists(filepath):
+        print('File already exists', filepath)
+    else:
+        print('File not exists %s', filepath)
+        with requests.get(image_url, stream=True, headers=headers) as r:
+            with open(filepath, 'wb') as f:
+                shutil.copyfileobj(r.raw, f)
+        _LOGGER.debug('Image downloaded %s', filepath)
+        print('File downloaded ', filepath)
 
 
 def _get_post_urls(tags: List[str]) -> List[str]:

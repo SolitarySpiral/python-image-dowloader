@@ -36,6 +36,13 @@ def sanitize_tag(tag: str) -> str:
     """
     _LOGGER.info("Sanitizing tag '%s'", tag)
     try:
+        '''
+        sanitized_tag = tag
+        if not 'artist:' in sanitized_tag:
+            sanitized_tag = tag.lower().strip()
+            sanitized_tag = re.sub('[/#%]', '', sanitized_tag)
+            _validate_tag_sanitized(sanitized_tag)
+        '''
         sanitized_tag = tag.lower().strip()
         sanitized_tag = re.sub('[/#%]', '', sanitized_tag)
         _validate_tag_sanitized(sanitized_tag)
