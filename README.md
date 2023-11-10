@@ -8,33 +8,21 @@
 
 nozomi.la API in Python.
 
-## Huge my own update
-- Add multiprocessing and async, you can input your favorite tags and program will download them to folders
+## Huge my own update 3.0.0
+- Code rewrite
+- Add multiprocessing and folder to download
 - Russian comments for messages
-- Small changes in api file.
 - Readable folders with `artist:Name` tags in `artist Name`
-- Main file to launch is `__init__`
+- Main file to launch is `__main__`
 
 1. Select dir to load images
 ```
 save_dir = 'D:/ghd/img/'
 ```
-2. Input positiv tag
-3. Black list tags
-4. Create or comment tasks for your needs.
-```
-task1 = asyncio.create_task(nozomi_tag_load(positive_tags, negative_tags))
-task2 = asyncio.create_task(nozomi_tag_load(positive_tags2, negative_tags))
+2. Input positiv tag (multiple tags doesn't work, only one) (and extra tag, to down load 2 simple tag to one folder)
+3. Black list tags (doesn't work)
+4. Run and wait.
 
-await task1
-await task2
-```
-5. Run and wait.
-
-- multiprocessing is 8, I didn't notice with speed with 16 pools
-```
-pool_size = 8
-```
 - original author and code https://github.com/Alfa-Q/python-nozomi
 
 ## Features
