@@ -41,7 +41,8 @@ def download_file(url: str, filepath: Path):
         post_data = requests.get(url).json()
         current_post = from_dict(data_class=Post, data=post_data)
         for media_meta_data in current_post.imageurls:
-            filename = f'{media_meta_data.dataid}.{media_meta_data.type}'
+            filename = f'{current_post.date}{media_meta_data.dataid}.{media_meta_data.type}'
+            filename = re.sub('[/:#%]', '', filename)
             image_filepath = filepath.joinpath(filename)
             if os.path.exists(image_filepath):
                 print('File already exists', image_filepath)
@@ -59,7 +60,7 @@ def download_file(url: str, filepath: Path):
 def runner():
     save_dir = 'D:/ghd/img/'
     positive_tags = ['artist:imbi']
-    extra_tags = ['sarah_(the_last_of_us)']#['artist:Xentho','sherry']#, 'lesdias','artist:IncredibleChris']['artist:imbi']
+    extra_tags = ['sarah_(the_last_of_us)']#['artist:Xentho','sherry']#, 'lesdias','artist:IncredibleChris']['artist:imbi'] ['higegepon']
     negative_tags = ['skateboard', 'petite']
     url_list = get_urls_list(positive_tags)#, negative_tags)#, extra_tags)
     url_list = list(url_list)
