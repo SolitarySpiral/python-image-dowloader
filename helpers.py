@@ -9,13 +9,10 @@ the simplicity of the current API, there isn't really a point right now.
 """
 
 import re
-import logging
 from typing import ForwardRef
 
-from nozomi.exceptions import InvalidTagFormat, InvalidUrlFormat
+from exceptions import InvalidTagFormat, InvalidUrlFormat
 
-
-_LOGGER = logging.getLogger(__name__)
 
 # Prevent circular dependency issues
 MediaMetaData = ForwardRef("MediaMetaData")
@@ -34,7 +31,6 @@ def sanitize_tag(tag: str) -> str:
         A tag in a valid format.
 
     """
-    _LOGGER.info("Sanitizing tag '%s'", tag)
     try:
         '''
         sanitized_tag = tag
@@ -46,10 +42,10 @@ def sanitize_tag(tag: str) -> str:
         sanitized_tag = tag.lower().strip()
         sanitized_tag = re.sub('[/#%]', '', sanitized_tag)
         _validate_tag_sanitized(sanitized_tag)
-    except InvalidTagFormat:
-        raise
+    except InvalidTagFormat as tf:
+        raise tf
     except Exception as ex:
-        _LOGGER.exception(ex)
+        raise ex
     return sanitized_tag
 
 
@@ -66,14 +62,13 @@ def parse_post_id(url: str) -> int:
         The ID of the post.
 
     """
-    _LOGGER.info("Parsing post ID from URL %s", url)
     try:
         post_id = re.search(r"post\/([\s\S]*?)\.html", url).group(1)
         post_id = int(post_id)
     except AttributeError:
         raise InvalidUrlFormat('The provided URL %s could not be parsed.', url)
     except Exception as ex:
-        _LOGGER.exception(ex)
+        raise ex
     return post_id
 
 
@@ -118,14 +113,13 @@ def create_tag_filepath(sanitized_tag: str) -> str:
         The URL of the search tag's associated .nozomi file.
 
     """
-    _LOGGER.info("Creating tag filepath for sanitized tag '%s'", sanitized_tag)
     try:
         _validate_tag_sanitized(sanitized_tag)
         encoded_tag = _encode_tag(sanitized_tag)
     except InvalidTagFormat:
         raise InvalidTagFormat('Tag must be sanitized before creating a filepath.')
     except Exception as ex:
-        _LOGGER.exception(ex)
+        raise ex
     return f"https://j.nozomi.la/nozomi/{encoded_tag}.nozomi"
 
 
@@ -143,7 +137,6 @@ def create_post_filepath(post_id: int) -> str:
         The URL of the post's associated JSON file.
 
     """
-    _LOGGER.info("Creating tag filepath for post ID %d", post_id)
     post_id = str(post_id)
     path = _calculate_post_filepath(post_id)
     return f'https://j.nozomi.la/post/{path}.json'
@@ -159,7 +152,6 @@ def _calculate_post_filepath(id: str) -> str:
         The URL path of a post's associated file.
 
     """
-    _LOGGER.debug("Calculating the filepath of some file for a post '%s'", id)
     if len(id) < 3:
         path = id
     else:
@@ -177,7 +169,6 @@ def _validate_tag_sanitized(tag: str) -> None:
         InvalidTagFormat: If the tag is an empty string or begins with an invalid character.
 
     """
-    _LOGGER.debug("Validating that the tag '%s' is sanitized", tag)
     if not tag:
         raise InvalidTagFormat(f"The tag '{tag}' is invalid. Cannot be empty.")
     if tag[0] == '-':
@@ -194,7 +185,6 @@ def _encode_tag(sanitized_tag: str) -> str:
         The encoded sanitized search tag.
 
     """
-    _LOGGER.debug("Encoding sanitized tag '%s'", sanitized_tag)
     convert_char_to_hex = lambda c: f"%{format(ord(c.group(0)), 'x')}"
     encoded_tag = re.sub('[;/?:@=&]', convert_char_to_hex, sanitized_tag)
     return encoded_tag
