@@ -8,95 +8,80 @@
 
 nozomi.la API in Python.
 
-## Huge my own update 3.0.1
+## Release 3.1.1
 - Code rewrite
 - Add multiprocessing and folder to download
 - Russian comments for messages
 - Readable folders with `artist:Name` tags in `artist Name`
 - Main file to launch is `__main__`
-
-1. Select dir to load images
-```
-save_dir = 'D:/ghd/img/'
-```
-2. Input positiv tag (multiple tags work too) (and extra tags, to download 2 simple tag to one folder)
-3. Black list tags (it works not!)
-4. Run and wait.
+- isues resolved
 
 - original author and code https://github.com/Alfa-Q/python-nozomi
 
-## Features
+## How to use
 
-- Retrieving media posts
-- Downloading media
-
-## Installation
-
-```
-$ pip install python-nozomi
-```
-
-## Upgrade
-
-```
-$ pip install python-nozomi --upgrade
-```
-
-## Example Usage
-
-Retrieve and download a single post provided a URL
-
+Скачать все посты по одному тегу
 ```python
-from pathlib import Path
-from nozomi import api
-
-url = 'https://nozomi.la/post/26905532.html#veigar'
-
-# Retrieve post metadata using the URL
-post = api.get_post(url)
-
-# Download the post
-api.download_media(post, Path.cwd())
+save_dir = 'D:/ghd/img/'
+relevant_date = None
+negative_tags = []
+positive_tags = ['artist:imbi']
+extra_tags = []
 ```
-
-Retrieve and download multiple posts provided a list of URLs
-
+или
 ```python
-from pathlib import Path
-from nozomi import api
-
-urls = [
-    'https://nozomi.la/post/26905532.html#veigar',
-    "https://nozomi.la/post/26932594.html#cho'gath",
-    'https://nozomi.la/post/25802243.html#nautilus'
-]
-
-# Retrieve all of the post metadata using the URLs
-posts = api.get_posts(urls)
-
-# Download the posts
-for post in posts:
-    api.download_media(post, Path.cwd())
+positive_tags = ['crumbles']
 ```
-
-Retrieve and download all posts containing certain tags
-
+Скачать посты по одному тегу, новее конкретной даты
 ```python
-# The tags that the posts retrieved must contain
-positive_tags = ['veigar', 'wallpaper']
-
-# Gets all posts with the tags 'veigar', 'wallpaper'
-for post in api.get_posts_with_tags(positive_tags):
-    api.download_media(post, Path.cwd())
+relevant_date = datetime.strptime("2023-07-11", '%Y-%m-%d')
+negative_tags = []
+positive_tags = ['artist:imbi']
+extra_tags = []
 ```
-
-Retrieve all posts containing certain tags, ignoring blacklisted tags
-
+Скачать посты по пересечению двух тегов и с исключением другого
 ```python
-# The blacklisted tags
-negative_tags = ['chogath']
+relevant_date = None
+negative_tags = ['butt']
+positive_tags = ['artist:imbi', 'skater']
+extra_tags = []
 
-# Gets all posts with the tags 'veigar' and 'wallpaper' without the 'chogath' tag.
-for post in api.get_posts_with_tags(positive_tags, negative_tags):
-    api.download_media(post, Path.cwd())
+#positive_tags = ['ponchi', 'uzumaki_himawari']
+```
+Скачать посты по одному персонажу, совместив разные варианты тегов персонажа (японские теги тоже работают)
+```python
+relevant_date = None
+negative_tags = []
+positive_tags = ['Riley_Anderson']
+extra_tags = ['Riley', 'rileyandersen']
+
+#positive_tags = ['Vanellope']
+#extra_tags = ['vanellope', 'vanellope_von_schweetz']
+
+#positive_tags = ['Sarah']
+#extra_tags = ['sarah_(the_last_of_us)', 'sarah_miller']
+
+#positive_tags = ['marie_rose']
+#extra_tags = ['マリー・ローズ','marie', 'marierose']
+```
+Скачать все посты одного автора более углубленно
+```python
+relevant_date = None
+negative_tags = []
+positive_tags = ['higegepon']
+extra_tags = ['artist:ひ~げぇぽん','pixiv_id_54698934']
+
+#positive_tags = ['opossumachine']
+#extra_tags = ['artist:PossumMachine⚠️']
+
+#positive_tags = ['artist:7738']
+#extra_tags = ['hebe', 'pixiv_id_66553761']
+
+#positive_tags = ['artist:ボッシー']
+#extra_tags = ['pixiv_id_13450661']
+```
+Скачать все посты нескольких авторов, где их общие работы схлопываются и скачиваются единожды
+```python
+positive_tags = ['lesdias']
+extra_tags = ['artist:SPICYdias', 'pixiv_id_15079627', 'artist:irispoplar', 'irispoplar', 'pixiv_id_25423811']
 ```
