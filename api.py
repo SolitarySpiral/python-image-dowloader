@@ -17,18 +17,30 @@ def _get_post_urls(tags: list[str]) -> list[str]:
     unic_post_ids = []
     if len(tags) == 0:
         return tags
+    
     sanitized_tags = [sanitize_tag(tag) for tag in tags]
     #print(sanitized_tags)
-    nozomi_urls  = [create_tag_filepath(sanitized_tag) for sanitized_tag in sanitized_tags]
-    #print(nozomi_urls)
+    nozomi_urls = []
+    for tag in tags:
+        if not tag.islower():
+            nozomi_urls.append(create_tag_filepath(tag))
+        else:
+            nozomi_urls.append(create_tag_filepath(sanitize_tag(tag)))
+    #nozomi_urls  = [create_tag_filepath(sanitized_tag) for sanitized_tag in sanitized_tags]
+    print(nozomi_urls)
     tag_post_ids = [_get_post_ids(nozomi_url) for nozomi_url in nozomi_urls]
     flat_list = list(chain.from_iterable(tag_post_ids))
     #print(tag_post_ids)
     #print(flat_list)
-    for i in range(len(flat_list)):
-        if flat_list.count(flat_list[i]) >= 2:
-            unic_post_ids.append(flat_list[i])
-    #print(unic_post_ids)
+    if len(tags) == 1:
+        for i in range(len(flat_list)): # artist with upper letters
+            if not flat_list.count(flat_list[i]) >= 2:
+                unic_post_ids.append(flat_list[i])
+    else:
+        for i in range(len(flat_list)): # artist with upper letters
+            if flat_list.count(flat_list[i]) >= 2:
+                unic_post_ids.append(flat_list[i])
+    print(unic_post_ids)
     #tag_post_ids = set.intersection(*map(set, tag_post_ids)) # Flatten list of tuples on intersection
     if len(unic_post_ids) == 0:
         print('Нет пересечения для тегов',sanitized_tags)
@@ -52,8 +64,11 @@ def _get_post_ids(tag_filepath_url: str) -> list[int]:
     try:
         headers = {'Accept-Encoding': 'gzip, deflate, br', 'Content-Type': 'arraybuffer'}
         response = requests.get(tag_filepath_url, headers=headers)
+        #print(response)
         total_ids = len(response.content) // 4  # divide by the size of uint
+        #print(total_ids)
         post_ids = list(struct.unpack(f'!{total_ids}I', bytearray(response.content)))
+        #print(post_ids)
     except Exception as ex:
         raise ex
     return post_ids

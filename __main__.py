@@ -10,9 +10,9 @@ from exceptions import InvalidTagFormat
 
 url_list = []
 
-def get_urls_list(positive_tags: list[str], negative_tags: list[str] = None, extra_tags: list[str] = None) -> list[str]:
-    if negative_tags is None:
-        negative_tags = list()
+def get_urls_list(positive_tags: list[str], extra_tags: list[str] = None) -> list[str]: #negative_tags: list[str] = None,
+    #if negative_tags is None:
+    #    negative_tags = list()
     if extra_tags is None:
         extra_tags = list()
     try:
@@ -75,10 +75,10 @@ def download_file(url: str, filepath: Path, blacklist: list[str]):
  
 def runner():
     save_dir = 'D:/ghd/img/'
-    positive_tags = ['artist:imbi', 'skater']
-    extra_tags = ['sarah_(the_last_of_us)']#['artist:Xentho','sherry']#, 'lesdias','artist:IncredibleChris']['artist:imbi'] ['higegepon']
-    negative_tags = ['collar', 'butt']
-    url_list = get_urls_list(positive_tags)#, negative_tags)#, extra_tags)
+    positive_tags = ['artist:Xentho','sherry']#['artist:imbi', 'skater']#['artist:IncredibleChris']
+    extra_tags = []#['artist:Xentho','sherry']#, 'lesdias','artist:IncredibleChris']['artist:imbi'] ['higegepon']
+    negative_tags = [] #['butt']
+    url_list = get_urls_list(positive_tags, extra_tags)#, negative_tags)#, extra_tags)
     url_list = list(url_list)
     # go to dir
     if not len(url_list) == 0:
