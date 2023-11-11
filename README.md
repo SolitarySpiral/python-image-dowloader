@@ -8,7 +8,7 @@
 
 nozomi.la API in Python.
 
-## Huge my own update 3.0.0
+## Huge my own update 3.0.1
 - Code rewrite
 - Add multiprocessing and folder to download
 - Russian comments for messages
@@ -19,8 +19,8 @@ nozomi.la API in Python.
 ```
 save_dir = 'D:/ghd/img/'
 ```
-2. Input positiv tag (multiple tags doesn't work, only one) (and extra tag, to down load 2 simple tag to one folder)
-3. Black list tags (doesn't work)
+2. Input positiv tag (multiple tags work too) (and extra tags, to download 2 simple tag to one folder)
+3. Black list tags (it works not!)
 4. Run and wait.
 
 - original author and code https://github.com/Alfa-Q/python-nozomi
