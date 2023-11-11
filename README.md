@@ -16,11 +16,12 @@ nozomi.la API in Python.
 - Main file to launch is `__main__`
 - isues resolved
 
-- original author and code https://github.com/Alfa-Q/python-nozomi
+## The original author and code
+https://github.com/Alfa-Q/python-nozomi
 
 ## How to use
 
-Скачать все посты по одному тегу
+### Скачать все посты по одному тегу:
 ```python
 save_dir = 'D:/ghd/img/'
 relevant_date = None
@@ -32,14 +33,14 @@ extra_tags = []
 ```python
 positive_tags = ['crumbles']
 ```
-Скачать посты по одному тегу, новее конкретной даты
+### Скачать посты по одному тегу, новее конкретной даты:
 ```python
 relevant_date = datetime.strptime("2023-07-11", '%Y-%m-%d')
 negative_tags = []
 positive_tags = ['artist:imbi']
 extra_tags = []
 ```
-Скачать посты по пересечению двух тегов и с исключением другого
+### Скачать посты по пересечению двух тегов и с исключением другого:
 ```python
 relevant_date = None
 negative_tags = ['butt']
@@ -48,7 +49,7 @@ extra_tags = []
 
 #positive_tags = ['ponchi', 'uzumaki_himawari']
 ```
-Скачать посты по одному персонажу, совместив разные варианты тегов персонажа (японские теги тоже работают)
+### Скачать посты по одному персонажу, совместив разные варианты тегов персонажа (японские теги тоже работают):
 ```python
 relevant_date = None
 negative_tags = []
@@ -64,7 +65,7 @@ extra_tags = ['Riley', 'rileyandersen']
 #positive_tags = ['marie_rose']
 #extra_tags = ['マリー・ローズ','marie', 'marierose']
 ```
-Скачать все посты одного автора более углубленно
+### Скачать все посты одного автора более углубленно:
 ```python
 relevant_date = None
 negative_tags = []
@@ -80,7 +81,7 @@ extra_tags = ['artist:ひ~げぇぽん','pixiv_id_54698934']
 #positive_tags = ['artist:ボッシー']
 #extra_tags = ['pixiv_id_13450661']
 ```
-Скачать все посты нескольких авторов, где их общие работы схлопываются и скачиваются единожды
+### Скачать все посты нескольких авторов, где их общие работы схлопываются и скачиваются единожды:
 ```python
 positive_tags = ['lesdias']
 extra_tags = ['artist:SPICYdias', 'pixiv_id_15079627', 'artist:irispoplar', 'irispoplar', 'pixiv_id_25423811']
