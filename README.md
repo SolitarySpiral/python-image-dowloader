@@ -10,12 +10,11 @@ nozomi.la API in Python.
 with rule34 API now!
 
 # Release 3.2.0
-- Code rewrite
-- Add multiprocessing and folder to download
-- Russian comments for messages
-- Readable folders with `artist:Name` tags in `artist Name`
+- select api `from_r34 = True/False`
+- rule34 API get 100 posts per page (pid=0, pid=1, pid=2), then downloads posts.
+- Readable folders with `artist:Name` tags in `artist Name` for Nozomi API
+- `RULE_34 Name` for rule34.xxx API
 - Main file to launch is `__main__`
-- isues resolved
 
 ## The original author and code
 https://github.com/Alfa-Q/python-nozomi
