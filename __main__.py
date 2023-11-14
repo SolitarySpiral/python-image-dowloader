@@ -30,7 +30,7 @@ def runner():
     save_dir = 'D:/ghd/img/'
     relevant_date = None #datetime.strptime("2023-07-11", '%Y-%m-%d')
     negative_tags = [] #['butt']
-    extra_tags = []
+    extra_tags = ['jashinn']
     #---r34 tags
     
     positive_tags = ['nopanani'] 

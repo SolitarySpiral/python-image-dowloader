@@ -106,11 +106,16 @@ def get_urls_list(positive_tags: list[str], extra_tags: list[str] = None) -> lis
         raise ex
 
 def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None):
-    positive_post_urls = []
-    positive_post_filenames = []
-    extra_post_urls = []
-    extra_post_filenames = []
-    corrupted_posts = []
+    #positive_post_urls = []
+    #positive_post_filenames = []
+    #extra_post_urls = []
+    #extra_post_filenames = []
+    #corrupted_posts = []
+    c = []
+    d = []
+    e = []
+    relevant_post_urls = []
+    relevant_post_filenames = []
     print(positive_tags, extra_tags)
     '''for tag in positive_tags:
         tag = re.sub('[(]', '%28', tag)
@@ -124,6 +129,17 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None):
             extra_tags = list()
             search_pos = r34Py.search(positive_tags)
             for result in search_pos:
+                if not result.video == '':
+                    c.append(result.fileurl)
+                    c.append(f'{result.id}-{result.video}')
+                    d.append(c)
+                    c = []
+                else:
+                    c.append(result.fileurl)
+                    c.append(f'{result.id}-{result.image}')
+                    d.append(c)
+                    c = []
+                '''
                 if not result.fileurl=='':    
                     if not result.video == '':
                         if re.search(result.video, result.fileurl):
@@ -132,7 +148,7 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None):
                     elif not result.image == '':
                         if re.search(result.image, result.fileurl):
                             positive_post_urls.append(result.fileurl)
-                            positive_post_filenames.append(f'{result.id}-{result.image}')
+                            positive_post_filenames.append(f'{result.id}-{result.image}')'''
                 '''if not (result.fileurl == '' or result.image == ''):
                     if re.search(result.image, result.fileurl):
                         positive_post_urls.append(result.fileurl)
@@ -148,37 +164,38 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None):
             search_pos = r34Py.search(positive_tags)
             search_ext = r34Py.search(extra_tags)
             for result in search_pos:
-                if not (result.fileurl == '' or result.image == ''):
-                    if re.search(result.image, result.fileurl):
-                        positive_post_urls.append(result.fileurl)
-                        positive_post_filenames.append(f'{result.id}-{result.image}')
-                    else:
-                        print('corrupted post', result.id)
-                        corrupted_posts.append(result.id)
+                if not result.video == '':
+                    c.append(result.fileurl)
+                    c.append(f'{result.id}-{result.video}')
+                    d.append(c)
+                    c = []
                 else:
-                    print('corrupted post', result.id)
-                    corrupted_posts.append(result.id)
+                    c.append(result.fileurl)
+                    c.append(f'{result.id}-{result.image}')
+                    d.append(c)
+                    c = []
             for result in search_ext:
-                if not (result.fileurl == '' or result.image == ''):
-                    if re.search(result.image, result.fileurl):
-                        extra_post_urls.append(result.fileurl)
-                        extra_post_filenames.append(f'{result.id}-{result.image}')
-                    else:
-                        print('corrupted post', result.id)
-                        corrupted_posts.append(result.id)
+                if not result.video == '':
+                    c.append(result.fileurl)
+                    c.append(f'{result.id}-{result.video}')
+                    e.append(c)
+                    c = []
                 else:
-                    print('corrupted post', result.id)
-                    corrupted_posts.append(result.id)
-        print('Список говнопостов:',corrupted_posts)
-        print('позитивных постов',len(positive_post_urls))
-        print('позитивных постов',len(positive_post_filenames))
-        print('негативный постов',len(extra_post_urls))
-        print('негативный постов',len(extra_post_filenames))
-        relevant_post_urls = set(positive_post_urls + list(set(extra_post_urls) - set(positive_post_urls)))
-        relevant_post_filenames = set(positive_post_filenames + list(set(extra_post_filenames) - set(positive_post_filenames)))
-        print('релевантных постов',len(relevant_post_urls))
-        print('релевантных постов',len(relevant_post_filenames))
-        #print(relevant_post_urls)
+                    c.append(result.fileurl)
+                    c.append(f'{result.id}-{result.image}')
+                    e.append(c)
+                    c = []
+        except_intersection = [item for item in e if item not in d]
+        rel_list = d + except_intersection
+        #relevant_post_urls = set(positive_post_urls + list(set(extra_post_urls) - set(positive_post_urls)))
+        #relevant_post_filenames = set(positive_post_filenames + list(set(extra_post_filenames) - set(positive_post_filenames)))
+
+
+        for i in range(len(rel_list)):
+            a, b = rel_list[i]
+            relevant_post_urls.append(a)
+            relevant_post_filenames.append(b)
+
         return relevant_post_urls, relevant_post_filenames
     except InvalidTagFormat as tf:
         raise tf
@@ -198,11 +215,11 @@ def r34_download(url, file_name):
     if os.path.exists(file_name):
         print('File already exists', file_name)
     else:
-        #print('File not exists', file_name)
+        print('File not exists', file_name)
         with requests.get(url, stream=True, headers=headers) as r:
             with open(file_name, 'wb') as f:
                 shutil.copyfileobj(r.raw, f)
-        print(r.text,r.content, r.headers)
+        #print(r.headers)
         print('File downloaded', file_name)
 
 def download_file(url: str, filepath: Path, blacklist: list[str], relevant_post_date = None):
