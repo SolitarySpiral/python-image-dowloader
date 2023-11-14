@@ -111,7 +111,7 @@ class rule34Py(Exception):
         self.__isInit__ = False
         self.stats = Stats()
 
-    def search(self, tags: list, page_id: int = None, limit: int = 100, deleted: bool = False,ignore_max_limit: bool = False) -> list:
+    def search(self, tags: list, negtags:list = None, page_id: int = None, limit: int = 100, deleted: bool = False,ignore_max_limit: bool = False) -> list:
         """Search for posts
 
         Args:
@@ -135,9 +135,16 @@ class rule34Py(Exception):
         params = [
             ["TAGS", "+".join(tags)],
             ["LIMIT", str(limit)],
-            #["PID", str(counter_pid)],
+            ["NTAGS", "+-".join(negtags)]
         ]
-        url = f"https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&limit={{LIMIT}}&tags={{TAGS}}"
+        #ntag_chk = params[2][1]
+        #ntag = params[0][1]
+        #print(tags, negtags)
+        #print(ntag, ntag_chk)
+        if not negtags == []:
+            url = f"https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&limit={{LIMIT}}&tags={{TAGS}}+-{{NTAGS}}"
+        else:
+            url = f"https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&limit={{LIMIT}}&tags={{TAGS}}"
         # Add "page_id"
         if page_id != None:
             url += f"&pid={{PAGE_ID}}"
@@ -166,11 +173,14 @@ class rule34Py(Exception):
         # (it's useless currently, becouse rule34.xxx returns always 200 OK regardless of an error)
         # and checking if content lenths is 0 or smaller
         # (curetly the only way to check for a error response)
+        #print(res_status)
+        #print(response.text)
+        #print(response.content)
         if res_status != 200 or res_len <= 0:
             return ret_posts
         # get first 1k posts or less
         for post in response.json():
-            print(post)
+            #print(post)
             small_part_posts.append(Post.from_json(post))
         #print('внутри search после get first 1k')
         [ret_posts.append(small_part_posts[i]) for i in range(len(small_part_posts))]

@@ -105,7 +105,7 @@ def get_urls_list(positive_tags: list[str], extra_tags: list[str] = None) -> lis
     except Exception as ex:
         raise ex
 
-def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None):
+def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, negative_tags: list[str] = None):
     #positive_post_urls = []
     #positive_post_filenames = []
     #extra_post_urls = []
@@ -116,7 +116,7 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None):
     e = []
     relevant_post_urls = []
     relevant_post_filenames = []
-    print(positive_tags, extra_tags)
+    print(positive_tags, extra_tags, negative_tags)
     '''for tag in positive_tags:
         tag = re.sub('[(]', '%28', tag)
         tag = re.sub('[)]', '%29', tag)
@@ -127,7 +127,8 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None):
         if extra_tags is None or extra_tags == []:
             print('ушли вне экстра')
             extra_tags = list()
-            search_pos = r34Py.search(positive_tags)
+            search_pos = r34Py.search(positive_tags, negative_tags)
+            #print('search_pos =',search_pos)
             for result in search_pos:
                 if not result.video == '':
                     c.append(result.fileurl)
@@ -161,8 +162,8 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None):
                     corrupted_posts.append(result.id)'''
         else:
             print('ушли в экстра') 
-            search_pos = r34Py.search(positive_tags)
-            search_ext = r34Py.search(extra_tags)
+            search_pos = r34Py.search(positive_tags, negative_tags)
+            search_ext = r34Py.search(extra_tags, negative_tags)
             for result in search_pos:
                 if not result.video == '':
                     c.append(result.fileurl)
@@ -187,6 +188,7 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None):
                     c = []
         except_intersection = [item for item in e if item not in d]
         rel_list = d + except_intersection
+        #print('rel_list=',rel_list)
         #relevant_post_urls = set(positive_post_urls + list(set(extra_post_urls) - set(positive_post_urls)))
         #relevant_post_filenames = set(positive_post_filenames + list(set(extra_post_filenames) - set(positive_post_filenames)))
 
