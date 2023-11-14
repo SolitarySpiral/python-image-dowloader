@@ -1,8 +1,20 @@
 """Web API functions."""
 import struct
-import requests
 from helpers import sanitize_tag, create_tag_filepath, create_post_filepath
 from itertools import chain
+#from main imported
+import requests
+import os, re, shutil
+from datetime import datetime
+from dacite import from_dict
+from pathlib import Path
+#from api import _get_post_urls
+from data import Post
+from exceptions import InvalidTagFormat
+from rule34Py import rule34Py
+from rule34Py.__vars__ import __headers__
+r34Py = rule34Py()
+#end main imported
 
 def _get_post_urls(tags: list[str]) -> list[str]:
     """Retrieve the links to all of the posts that contain the tags.
@@ -78,3 +90,166 @@ def _get_post_ids(tag_filepath_url: str) -> list[int]:
     except Exception as ex:
         raise ex
     return post_ids
+
+def get_urls_list(positive_tags: list[str], extra_tags: list[str] = None) -> list[str]:
+    if extra_tags is None:
+        extra_tags = list()
+    try:
+        positive_post_urls = _get_post_urls(positive_tags)
+        extra_post_urls = _get_post_urls(extra_tags)
+        relevant_post_urls = set(positive_post_urls + list(set(extra_post_urls) - set(positive_post_urls)))
+        #print(relevant_post_urls)
+        return relevant_post_urls
+    except InvalidTagFormat as tf:
+        raise tf
+    except Exception as ex:
+        raise ex
+
+def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None):
+    positive_post_urls = []
+    positive_post_filenames = []
+    extra_post_urls = []
+    extra_post_filenames = []
+    corrupted_posts = []
+    print(positive_tags, extra_tags)
+    '''for tag in positive_tags:
+        tag = re.sub('[(]', '%28', tag)
+        tag = re.sub('[)]', '%29', tag)
+    for tag in extra_tags:
+        tag = re.sub('[(]', '%28', tag)
+        tag = re.sub('[)]', '%29', tag)'''
+    try:
+        if extra_tags is None or extra_tags == []:
+            print('ушли вне экстра')
+            extra_tags = list()
+            search_pos = r34Py.search(positive_tags)
+            for result in search_pos:
+                if not result.fileurl=='':    
+                    if not result.video == '':
+                        if re.search(result.video, result.fileurl):
+                            positive_post_urls.append(result.fileurl)
+                            positive_post_filenames.append(f'{result.id}-{result.video}')
+                    elif not result.image == '':
+                        if re.search(result.image, result.fileurl):
+                            positive_post_urls.append(result.fileurl)
+                            positive_post_filenames.append(f'{result.id}-{result.image}')
+                '''if not (result.fileurl == '' or result.image == ''):
+                    if re.search(result.image, result.fileurl):
+                        positive_post_urls.append(result.fileurl)
+                        positive_post_filenames.append(f'{result.id}-{result.image}')
+                    else:
+                        print('corrupted post', result.id)
+                        corrupted_posts.append(result.id)
+                else:
+                    print('corrupted post', result.id)
+                    corrupted_posts.append(result.id)'''
+        else:
+            print('ушли в экстра') 
+            search_pos = r34Py.search(positive_tags)
+            search_ext = r34Py.search(extra_tags)
+            for result in search_pos:
+                if not (result.fileurl == '' or result.image == ''):
+                    if re.search(result.image, result.fileurl):
+                        positive_post_urls.append(result.fileurl)
+                        positive_post_filenames.append(f'{result.id}-{result.image}')
+                    else:
+                        print('corrupted post', result.id)
+                        corrupted_posts.append(result.id)
+                else:
+                    print('corrupted post', result.id)
+                    corrupted_posts.append(result.id)
+            for result in search_ext:
+                if not (result.fileurl == '' or result.image == ''):
+                    if re.search(result.image, result.fileurl):
+                        extra_post_urls.append(result.fileurl)
+                        extra_post_filenames.append(f'{result.id}-{result.image}')
+                    else:
+                        print('corrupted post', result.id)
+                        corrupted_posts.append(result.id)
+                else:
+                    print('corrupted post', result.id)
+                    corrupted_posts.append(result.id)
+        print('Список говнопостов:',corrupted_posts)
+        print('позитивных постов',len(positive_post_urls))
+        print('позитивных постов',len(positive_post_filenames))
+        print('негативный постов',len(extra_post_urls))
+        print('негативный постов',len(extra_post_filenames))
+        relevant_post_urls = set(positive_post_urls + list(set(extra_post_urls) - set(positive_post_urls)))
+        relevant_post_filenames = set(positive_post_filenames + list(set(extra_post_filenames) - set(positive_post_filenames)))
+        print('релевантных постов',len(relevant_post_urls))
+        print('релевантных постов',len(relevant_post_filenames))
+        #print(relevant_post_urls)
+        return relevant_post_urls, relevant_post_filenames
+    except InvalidTagFormat as tf:
+        raise tf
+    except Exception as ex:
+        raise ex
+
+def r34_download(url, file_name):
+    #res = requests.get(url, stream = True)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Referer': 'https://wimg.rule34.xxx/',
+        'Upgrade-Insecure-Requests': '1'
+    }
+    if os.path.exists(file_name):
+        print('File already exists', file_name)
+    else:
+        #print('File not exists', file_name)
+        with requests.get(url, stream=True, headers=headers) as r:
+            with open(file_name, 'wb') as f:
+                shutil.copyfileobj(r.raw, f)
+        print(r.text,r.content, r.headers)
+        print('File downloaded', file_name)
+
+def download_file(url: str, filepath: Path, blacklist: list[str], relevant_post_date = None):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Referer': 'https://nozomi.la/',
+        'Upgrade-Insecure-Requests': '1'
+    }
+    if relevant_post_date is None:
+        relevant_post_date = datetime.strptime("1900-01-01", '%Y-%m-%d')
+    filepath.mkdir(parents=True, exist_ok=True)
+    try:
+        post_data = requests.get(url).json()
+        current_post = from_dict(data_class=Post, data=post_data)
+        #print(current_post.date, relevant_post_date)
+        post_date = datetime.strptime(current_post.date, '%Y-%m-%d %H:%M:%S-%f')
+        if post_date > relevant_post_date:
+            current_post_tag_list = []
+            for i in range(len(current_post.artist)):
+                current_post_tag_list.append(current_post.artist[i].tag)
+            for i in range(len(current_post.character)):
+                current_post_tag_list.append(current_post.character[i].tag)
+            for i in range(len(current_post.copyright)):
+                current_post_tag_list.append(current_post.copyright[i].tag)
+            for i in range(len(current_post.general)):
+                current_post_tag_list.append(current_post.general[i].tag)
+            #print(current_post_tag_list)
+            #print(current_post.artist, current_post.character, current_post.copyright, current_post.general)
+            if not len(set(current_post_tag_list).intersection(blacklist)) > 0:
+                for media_meta_data in current_post.imageurls:
+                    filename = f'{current_post.date}{media_meta_data.dataid}.{media_meta_data.type}'
+                    filename = re.sub('[/:#%]', '', filename)
+                    image_filepath = filepath.joinpath(filename)
+                    if os.path.exists(image_filepath):
+                        print('File already exists', image_filepath)
+                    else:
+                        print('File not exists', image_filepath)
+                        with requests.get(media_meta_data.imageurl, stream=True, headers=headers) as r:
+                            with open(image_filepath, 'wb') as f:
+                                shutil.copyfileobj(r.raw, f)
+                        print('File downloaded', image_filepath)
+            else:
+                print('Post in black list',current_post.postid)
+    except requests.exceptions.RequestException as e:
+        return e
+    except Exception as ex:
+        return ex
