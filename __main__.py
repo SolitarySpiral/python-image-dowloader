@@ -7,7 +7,6 @@ from rule34Py.__vars__ import __headers__
 r34Py = rule34Py()
 
 
-#url_list = []
 
  
 def runner():
@@ -25,21 +24,23 @@ def runner():
     If you want to download from r34:
     from_r34 = True
     '''
+    small_multilist = []
+    full_multilist = []
     workers = 20
-    from_r34 = True #False#True
+    from_r34 = False #False#True
     save_dir = 'D:/ghd/img/'
     relevant_date = None #datetime.strptime("2023-07-11", '%Y-%m-%d')
     negative_tags = [] #['butt']
-    extra_tags = ['jashinn']
+    extra_tags = []
     #---r34 tags
     
-    positive_tags = ['nopanani'] 
+    #positive_tags = ['nopanani']
     #positive_tags = ['jashinn']
     #positive_tags = ['kgovipositors']
     
 
     #---nozomi tags
-    #positive_tags = ['artist:imbi'] #['artist:IncredibleChris']
+    positive_tags = ['artist:imbi'] #['artist:IncredibleChris']
     #extra_tags = [] #['artist:Xentho','sherry']
     
     #positive_tags = ['artist:CTFBM']
@@ -53,45 +54,153 @@ def runner():
 
     #positive_tags = ['neku_oneneko']
 
-    #positive_tags = ['Riley_Anderson']
-    #extra_tags = ['Riley', 'rileyandersen']
+    #FOR SINGLE DOWNLOADING
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
 
-    #positive_tags = ['Vanellope']
-    #extra_tags = ['vanellope', 'vanellope_von_schweetz']
+    '''
+    ===Multidownloading  Rule 34===
 
-    #positive_tags = ['Sarah']
-    #extra_tags = ['sarah_(the_last_of_us)', 'sarah_miller']
+    You should input your tags in positive_tags, extra_tags and\or negative_tags. Next 3 strings don't change.
+    For good work You have to cancel the list "small_multilist = []" at the end
 
-    #positive_tags = ['higegepon']
-    #extra_tags = ['artist:ひ~げぇぽん','pixiv_id_54698934']
+    positive_tags = ['nopanani']
+    extra_tags = []
+    negative_tags = ['big_ass', 'animated']
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    '''
+    ''' # <-- HERE IS UNLOCK MULTI for RULE 34
+    from_r34 = True
+    #1
+    positive_tags = ['nopanani']
+    extra_tags = []
+    negative_tags = ['big_ass', 'animated']
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #2
+    positive_tags = ['jashinn']
+    extra_tags = []
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #3
+    positive_tags = ['kgovipositors']
+    extra_tags = []
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []'''
+    '''
+    ===Multidownloading NOZOMI===
+    
+    You should input your tags in positive_tags, extra_tags and\or negative_tags. Next 3 strings don't change.
+    For good work You have to cancel the list "small_multilist = []" at the end
 
-    #positive_tags = ['marie_rose']
-    #extra_tags = ['マリー・ローズ','marie', 'marierose']
-
-    #positive_tags = ['opossumachine']
-    #extra_tags = ['artist:PossumMachine⚠️']
-
-    #positive_tags = ['artist:7738']
-    #extra_tags = ['hebe', 'pixiv_id_66553761']
-
-    #positive_tags = ['artist:ボッシー']
-    #extra_tags = ['pixiv_id_13450661']
-
-    #positive_tags = ['artist:omsgarou']
-    #extra_tags = ['pixiv_id_2297160']
-
-    #positive_tags = ['artist:ターちゃん']
-    #extra_tags = ['pixiv_id_947930']
-
-    #positive_tags = ['artist:Libidoll']
-    #extra_tags = ['pixiv_id_1043474']
-
-    #positive_tags = ['artist:AliceBunnie']
-    #extra_tags = ['pixiv_id_25867890']
-
-    #positive_tags = ['lesdias']
-    #extra_tags = ['artist:SPICYdias', 'pixiv_id_15079627', 'artist:irispoplar', 'irispoplar', 'pixiv_id_25423811']
-
+    positive_tags = ['Riley_Anderson']
+    extra_tags = ['Riley', 'rileyandersen', 'riley_andersen']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    '''
+    ''' # <-- HERE IS UNLOCK MULTI for NOZOMI
+    from_r34 = False # <-- stay it here
+    #1
+    positive_tags = ['Riley_Anderson']
+    extra_tags = ['Riley', 'rileyandersen', 'riley_andersen']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #2
+    positive_tags = ['Vanellope']
+    extra_tags = ['vanellope', 'vanellope_von_schweetz']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #3
+    positive_tags = ['Sarah']
+    extra_tags = ['sarah_(the_last_of_us)', 'sarah_miller']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #4
+    positive_tags = ['higegepon']
+    extra_tags = ['artist:ひ~げぇぽん','pixiv_id_54698934']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #5
+    positive_tags = ['marie_rose']
+    extra_tags = ['マリー・ローズ','marie', 'marierose']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #6
+    positive_tags = ['opossumachine']
+    extra_tags = ['artist:PossumMachine⚠️']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #7
+    positive_tags = ['artist:7738']
+    extra_tags = ['hebe', 'pixiv_id_66553761']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #8
+    positive_tags = ['artist:ボッシー']
+    extra_tags = ['pixiv_id_13450661']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #9
+    positive_tags = ['artist:omsgarou']
+    extra_tags = ['pixiv_id_2297160']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #10
+    positive_tags = ['artist:ターちゃん']
+    extra_tags = ['pixiv_id_947930']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #11
+    positive_tags = ['artist:Libidoll']
+    extra_tags = ['pixiv_id_1043474']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #12
+    positive_tags = ['artist:AliceBunnie']
+    extra_tags = ['pixiv_id_25867890']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #13
+    positive_tags = ['lesdias']
+    extra_tags = ['artist:SPICYdias', 'pixiv_id_15079627', 'artist:irispoplar', 'irispoplar', 'pixiv_id_25423811']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    '''
     # pos only
 
     #positive_tags = ['crumbles']
@@ -101,48 +210,58 @@ def runner():
     '''there is no need to change the code below'''
     if not from_r34:
         '''for NOZOMI.la'''
-        url_list = api.get_urls_list(positive_tags, extra_tags)
-        url_list = list(url_list)
-        url_list.sort()
-        # go to dir
-        if not len(url_list) == 0:
-            string_tag = ''.join(positive_tags)
-            folder_tag = re.sub(r'[;,:\s]', ' ', string_tag)
-            if not os.path.exists(save_dir + folder_tag):
-                os.makedirs(save_dir + folder_tag)
-            os.chdir(save_dir + folder_tag)
-            print("Текущая директория изменилась на ", os.getcwd())
-            threads= []
-            with ThreadPoolExecutor(max_workers=workers) as executor:
-                for post_url in url_list:
-                    threads.append(executor.submit(api.download_file, post_url, Path.cwd(), negative_tags, relevant_date))
-                    
-                for task in as_completed(threads):
-                    pass
+        if not full_multilist == '':
+            print(full_multilist)
+            for i in range(len(full_multilist)):
+                internal_pos, internal_ext, internal_neg = full_multilist[i]
+                url_list = api.get_urls_list(internal_pos, internal_ext)#(positive_tags, extra_tags)
+                url_list = list(url_list)
+                url_list.sort()
+                # go to dir
+                if not len(url_list) == 0:
+                    string_tag = ''.join(internal_pos)
+                    folder_tag = re.sub(r'[;,:\s]', ' ', string_tag)
+                    if not os.path.exists(save_dir + folder_tag):
+                        os.makedirs(save_dir + folder_tag)
+                    os.chdir(save_dir + folder_tag)
+                    print("Текущая директория изменилась на ", os.getcwd())
+                    threads= []
+                    with ThreadPoolExecutor(max_workers=workers) as executor:
+                        for post_url in url_list:
+                            threads.append(executor.submit(api.download_file, post_url, Path.cwd(), internal_neg, relevant_date))
+                            
+                        for task in as_completed(threads):
+                            pass
     else:
-        #search = r34Py.search(positive_tags, ignore_max_limit=True)
-        urls, filenames = api.r34_urls_files_list(positive_tags, extra_tags)
-        urls = list(urls)
-        filenames = list(filenames)
-        string_tag = ''.join(positive_tags)
-        folder_tag = re.sub(r'[;,:\s]', ' ', string_tag)
-        folder_tag = 'RULE__34 '+ folder_tag
-        if not os.path.exists(save_dir + folder_tag):
-            os.makedirs(save_dir + folder_tag)
-        os.chdir(save_dir + folder_tag)
-        print("Текущая директория изменилась на ", os.getcwd())
-        threads= []
-        with ThreadPoolExecutor(max_workers=workers) as executor:
-            for i in range(len(urls)):#for result in search:
-                try:
-                    if not (filenames[i] == '' and urls[i] == ''):
-                        threads.append(executor.submit(api.r34_download, urls[i], filenames[i]))
-                except Exception as ex:
-                    print(ex)
-                    pass
-                
-            for task in as_completed(threads):
-                pass
+        '''FOR RULE34.xxx'''
+        if not full_multilist == []:
+            print(full_multilist)
+            for i in range(len(full_multilist)):
+                internal_pos, internal_ext, internal_neg = full_multilist[i]
+                urls, filenames = api.r34_urls_files_list(internal_pos, internal_ext, internal_neg)
+                urls = list(urls)
+                filenames = list(filenames)
+                string_tag = ''.join(internal_pos)
+                folder_tag = re.sub(r'[;,:\s]', ' ', string_tag)
+                folder_tag = 'RULE__34 '+ folder_tag
+                if not os.path.exists(save_dir + folder_tag):
+                    os.makedirs(save_dir + folder_tag)
+                os.chdir(save_dir + folder_tag)
+                print("Текущая директория изменилась на ", os.getcwd())
+                threads= []
+                #print(urls)
+                #print(filenames)
+                with ThreadPoolExecutor(max_workers=workers) as executor:
+                    for i in range(len(urls)):#for result in search:
+                        try:
+                            if not (filenames[i] == '' and urls[i] == ''):
+                                threads.append(executor.submit(api.r34_download, urls[i], filenames[i]))
+                        except Exception as ex:
+                            print(ex)
+                            pass
+                        
+                    for task in as_completed(threads):
+                        pass
 
 
 if __name__ == '__main__':
