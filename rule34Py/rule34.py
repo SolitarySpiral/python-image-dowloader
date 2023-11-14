@@ -191,7 +191,7 @@ class rule34Py(Exception):
                 #print(response2.text)
                 if response2.status_code == 200:
                     for post2 in response2.json():
-                        print(post2)
+                        #print(post2)
                         posts_inside_while.append(Post.from_json(post2))
                 print('вторая проверка small_part_posts',len(posts_inside_while))
                 if not len(posts_inside_while) == 0:

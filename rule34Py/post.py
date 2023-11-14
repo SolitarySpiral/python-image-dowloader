@@ -15,9 +15,14 @@ class Post:
         change = json["change"]
         directory = json["directory"]
         
-        img_type = "video" if pFileUrl.endswith(".mp4") else "gif" if pFileUrl.endswith(".gif") else "image"
+        if pFileUrl.endswith(".mp4"):
+            file_type = "video" 
+        elif pFileUrl.endswith(".gif"):
+            file_type = "gif"
+        else:
+            file_type = "image"
             
-        return Post(pId, pHash, pScore, pSize, pFileUrl, pImage, preview, sample, pOwner, pTags, img_type, directory, change)
+        return Post(pId, pHash, pScore, pSize, pFileUrl, pImage, preview, sample, pOwner, pTags, file_type, directory, change)
     #(pId, pHash, pScore, pSize, pFileUrl, pImage, preview, sample, pOwner, pTags, img_type, directory, change)
     
     def __init__(self, id: int, hash: str, score: int, size: list, fileurl: str,  image: str, preview: str, sample: str, owner: str, tags: list, file_type: str, directory: int, change: int):
