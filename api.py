@@ -132,12 +132,12 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, 
             for result in search_pos:
                 if not result.video == '':
                     c.append(result.fileurl)
-                    c.append(f'{result.id}-{result.video}')
+                    c.append(f'{result.date}-{result.id}-{result.video}')
                     d.append(c)
                     c = []
                 else:
                     c.append(result.fileurl)
-                    c.append(f'{result.id}-{result.image}')
+                    c.append(f'{result.date}-{result.id}-{result.image}')
                     d.append(c)
                     c = []
                 '''
@@ -167,23 +167,23 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, 
             for result in search_pos:
                 if not result.video == '':
                     c.append(result.fileurl)
-                    c.append(f'{result.id}-{result.video}')
+                    c.append(f'{result.date}-{result.id}-{result.video}')
                     d.append(c)
                     c = []
                 else:
                     c.append(result.fileurl)
-                    c.append(f'{result.id}-{result.image}')
+                    c.append(f'{result.date}-{result.id}-{result.image}')
                     d.append(c)
                     c = []
             for result in search_ext:
                 if not result.video == '':
                     c.append(result.fileurl)
-                    c.append(f'{result.id}-{result.video}')
+                    c.append(f'{result.date}-{result.id}-{result.video}')
                     e.append(c)
                     c = []
                 else:
                     c.append(result.fileurl)
-                    c.append(f'{result.id}-{result.image}')
+                    c.append(f'{result.date}-{result.id}-{result.image}')
                     e.append(c)
                     c = []
         except_intersection = [item for item in e if item not in d]
@@ -214,6 +214,7 @@ def r34_download(url, file_name):
         'Referer': 'https://wimg.rule34.xxx/',
         'Upgrade-Insecure-Requests': '1'
     }
+    file_name = re.sub('[/:+#%]', '', file_name)
     if os.path.exists(file_name):
         print('File already exists', file_name)
     else:

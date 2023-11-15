@@ -246,7 +246,7 @@ def runner():
                 filenames = list(filenames)
                 string_tag = ''.join(internal_pos)
                 folder_tag = re.sub(r'[<>;,:\s]', ' ', string_tag)
-                folder_tag = 'RULE__34 '+ folder_tag
+                folder_tag = 'RULE_34 '+ folder_tag
                 if not os.path.exists(save_dir + folder_tag):
                     os.makedirs(save_dir + folder_tag)
                 os.chdir(save_dir + folder_tag)
