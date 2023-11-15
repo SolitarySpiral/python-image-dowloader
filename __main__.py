@@ -27,20 +27,20 @@ def runner():
     small_multilist = []
     full_multilist = []
     workers = 20
-    from_r34 = False #False#True
+    from_r34 = True #False#True
     save_dir = 'D:/ghd/img/'
     relevant_date = None #datetime.strptime("2023-07-11", '%Y-%m-%d')
     negative_tags = [] #['butt']
     extra_tags = []
     #---r34 tags
-    
+    positive_tags = ['<3_eyes', 'diane_foxington']
     #positive_tags = ['nopanani']
     #positive_tags = ['jashinn']
     #positive_tags = ['kgovipositors']
     
 
     #---nozomi tags
-    positive_tags = ['artist:imbi'] #['artist:IncredibleChris']
+    #positive_tags = ['artist:imbi'] #['artist:IncredibleChris']
     #extra_tags = [] #['artist:Xentho','sherry']
     
     #positive_tags = ['artist:CTFBM']
@@ -54,9 +54,12 @@ def runner():
 
     #positive_tags = ['neku_oneneko']
 
-    #FOR SINGLE DOWNLOADING
+    #----FOR SINGLE DOWNLOADING (USE ONLY SINGLE OR MULTI AT ONCE)
+    #Unlock the lines below to load the individual tags above
+
     small_multilist.extend((positive_tags, extra_tags, negative_tags))
     full_multilist.append(small_multilist)
+    #----
 
     '''
     ===Multidownloading  Rule 34===
@@ -220,7 +223,7 @@ def runner():
                 # go to dir
                 if not len(url_list) == 0:
                     string_tag = ''.join(internal_pos)
-                    folder_tag = re.sub(r'[;,:\s]', ' ', string_tag)
+                    folder_tag = re.sub(r'[<>;,:\s]', ' ', string_tag)
                     if not os.path.exists(save_dir + folder_tag):
                         os.makedirs(save_dir + folder_tag)
                     os.chdir(save_dir + folder_tag)
@@ -242,7 +245,7 @@ def runner():
                 urls = list(urls)
                 filenames = list(filenames)
                 string_tag = ''.join(internal_pos)
-                folder_tag = re.sub(r'[;,:\s]', ' ', string_tag)
+                folder_tag = re.sub(r'[<>;,:\s]', ' ', string_tag)
                 folder_tag = 'RULE__34 '+ folder_tag
                 if not os.path.exists(save_dir + folder_tag):
                     os.makedirs(save_dir + folder_tag)
