@@ -105,12 +105,14 @@ def get_urls_list(positive_tags: list[str], extra_tags: list[str] = None) -> lis
     except Exception as ex:
         raise ex
 
-def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, negative_tags: list[str] = None):
+def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, negative_tags: list[str] = None, relevant_post_date: datetime = None):
     #positive_post_urls = []
     #positive_post_filenames = []
     #extra_post_urls = []
     #extra_post_filenames = []
     #corrupted_posts = []
+    if relevant_post_date is None:
+        relevant_post_date = datetime.strptime("1900-01-01 00:00:00+00:00", '%Y-%m-%d %H:%M:%S%z')
     c = []
     d = []
     e = []
@@ -130,16 +132,19 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, 
             search_pos = r34Py.search(positive_tags, negative_tags)
             #print('search_pos =',search_pos)
             for result in search_pos:
-                if not result.video == '':
-                    c.append(result.fileurl)
-                    c.append(f'{result.date}-{result.id}-{result.video}')
-                    d.append(c)
-                    c = []
-                else:
-                    c.append(result.fileurl)
-                    c.append(f'{result.date}-{result.id}-{result.image}')
-                    d.append(c)
-                    c = []
+                post_date = result.date
+                #print(post_date, relevant_post_date)
+                if post_date > relevant_post_date:
+                    if not result.video == '':
+                        c.append(result.fileurl)
+                        c.append(f'{result.date}-{result.id}-{result.video}')
+                        d.append(c)
+                        c = []
+                    else:
+                        c.append(result.fileurl)
+                        c.append(f'{result.date}-{result.id}-{result.image}')
+                        d.append(c)
+                        c = []
                 '''
                 if not result.fileurl=='':    
                     if not result.video == '':
@@ -165,27 +170,31 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, 
             search_pos = r34Py.search(positive_tags, negative_tags)
             search_ext = r34Py.search(extra_tags, negative_tags)
             for result in search_pos:
-                if not result.video == '':
-                    c.append(result.fileurl)
-                    c.append(f'{result.date}-{result.id}-{result.video}')
-                    d.append(c)
-                    c = []
-                else:
-                    c.append(result.fileurl)
-                    c.append(f'{result.date}-{result.id}-{result.image}')
-                    d.append(c)
-                    c = []
+                post_date = result.date
+                if post_date > relevant_post_date:
+                    if not result.video == '':
+                        c.append(result.fileurl)
+                        c.append(f'{result.date}-{result.id}-{result.video}')
+                        d.append(c)
+                        c = []
+                    else:
+                        c.append(result.fileurl)
+                        c.append(f'{result.date}-{result.id}-{result.image}')
+                        d.append(c)
+                        c = []
             for result in search_ext:
-                if not result.video == '':
-                    c.append(result.fileurl)
-                    c.append(f'{result.date}-{result.id}-{result.video}')
-                    e.append(c)
-                    c = []
-                else:
-                    c.append(result.fileurl)
-                    c.append(f'{result.date}-{result.id}-{result.image}')
-                    e.append(c)
-                    c = []
+                post_date = result.date
+                if post_date > relevant_post_date:
+                    if not result.video == '':
+                        c.append(result.fileurl)
+                        c.append(f'{result.date}-{result.id}-{result.video}')
+                        e.append(c)
+                        c = []
+                    else:
+                        c.append(result.fileurl)
+                        c.append(f'{result.date}-{result.id}-{result.image}')
+                        e.append(c)
+                        c = []
         except_intersection = [item for item in e if item not in d]
         rel_list = d + except_intersection
         #print('rel_list=',rel_list)

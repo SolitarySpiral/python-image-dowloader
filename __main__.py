@@ -1,5 +1,6 @@
 import api
 import os, re
+from datetime import datetime
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from rule34Py import rule34Py
@@ -29,7 +30,7 @@ def runner():
     workers = 20
     from_r34 = True #False#True
     save_dir = 'D:/ghd/img/'
-    relevant_date = None #datetime.strptime("2023-07-11", '%Y-%m-%d')
+    relevant_date = None #datetime.strptime("2023-01-01", '%Y-%m-%d')
     negative_tags = [] #['butt']
     extra_tags = []
     #---r34 tags
@@ -241,7 +242,7 @@ def runner():
             print(full_multilist)
             for i in range(len(full_multilist)):
                 internal_pos, internal_ext, internal_neg = full_multilist[i]
-                urls, filenames = api.r34_urls_files_list(internal_pos, internal_ext, internal_neg)
+                urls, filenames = api.r34_urls_files_list(internal_pos, internal_ext, internal_neg, relevant_date)
                 urls = list(urls)
                 filenames = list(filenames)
                 string_tag = ''.join(internal_pos)
