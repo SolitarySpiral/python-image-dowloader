@@ -9,18 +9,40 @@
 nozomi.la API in Python.
 with rule34 API now!
 
-# Release 3.2.0
-- select api `from_r34 = True/False`
-- rule34 API get 100 posts per page (pid=0, pid=1, pid=2), then downloads posts.
-- Readable folders with `artist:Name` tags in `artist Name` for Nozomi API
-- `RULE_34 Name` for rule34.xxx API
-- Main file to launch is `__main__`
+# Release 3.2.2
+- xml parse for rule_34
+- rule_34 files are uploaded with the post_date and the post_id now 
 
 ## The original author and code
 https://github.com/Alfa-Q/python-nozomi
 
 # How to use
 ## Rule34 API
+### Мультизагрузка
+- Заблокируй single загрузку
+```
+#----FOR SINGLE DOWNLOADING (USE ONLY SINGLE OR MULTI AT ONCE)
+    #Unlock the lines below to load the individual tags above
+
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+#----
+```
+поставив # перед строками кода
+```
+#small_multilist.extend((positive_tags, extra_tags, negative_tags))
+#full_multilist.append(small_multilist)
+```
+- Найди в коде
+```
+===Multidownloading  Rule 34===
+```
+Прочитай как оно работает и как добавлять в мультизагрузку твой набор тегов.
+Затем разблокируй список мультизагрузки, убрав экранирующие символы комментария С ОБОИХ СТОРОН.
+```
+''' # <-- HERE IS UNLOCK MULTI for RULE 34
+```
+- мультизагрузка для NOZOMI работает аналогичным образом
 ### Скачать посты c rule34
 ``` python
 workers = 20
