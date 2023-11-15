@@ -160,8 +160,8 @@ class rule34Py(Exception):
             url += "&deleted=show"
 
         formatted_url = self._parseUrlParams(url, params)
-        print('первый url',formatted_url+f'&pid={counter_pid}&json=1')
-        response = requests.get(formatted_url+f'&pid={counter_pid}&json=1', headers=__headers__) #&json=1', stream=True
+        print('первый url',formatted_url+f'&pid={counter_pid}')
+        response = requests.get(formatted_url+f'&pid={counter_pid}', headers=__headers__) #&json=1', stream=True
         #print(response.encoding)
         no_pid_url = formatted_url
         res_status = response.status_code
@@ -178,10 +178,17 @@ class rule34Py(Exception):
         #print(response.content)
         if res_status != 200 or res_len <= 0:
             return ret_posts
-        # get first 1k posts or less
-        for post in response.json():
+        
+        soup = BeautifulSoup (response.content, 'xml')
+        #print(soup)
+        #[tag.name for tag in soup.find_all()]
+        myposts = soup.find_all("post")#[soup.post]
+        #print(myposts)
+        for post in myposts:
+            small_part_posts.append(Post.from_xml(post))
+        #for post in response.json():
             #print(post)
-            small_part_posts.append(Post.from_json(post))
+        #    small_part_posts.append(Post.from_json(post))
         #print('внутри search после get first 1k')
         [ret_posts.append(small_part_posts[i]) for i in range(len(small_part_posts))]
         #time.sleep(30)
@@ -312,7 +319,7 @@ class rule34Py(Exception):
 
         for post in response.json():
             ret_posts.append(Post.from_json(post))
-        print(ret_posts)
+        #print(ret_posts)
         return ret_posts if len(ret_posts) > 1 else (ret_posts[0] if len(ret_posts) == 1 else ret_posts)
 
     def icame(self, limit: int = 100) -> list:

@@ -1,3 +1,4 @@
+from datetime import datetime
 class Post:
     
     @staticmethod
@@ -24,8 +25,33 @@ class Post:
             
         return Post(pId, pHash, pScore, pSize, pFileUrl, pImage, preview, sample, pOwner, pTags, file_type, directory, change)
     #(pId, pHash, pScore, pSize, pFileUrl, pImage, preview, sample, pOwner, pTags, img_type, directory, change)
+
+    @staticmethod
+    def from_xml(soup_post):        
+        pFileUrl = soup_post["file_url"]
+        pImage = pFileUrl.split('/')[5]#soup_post["image"]
+        pHash = soup_post["md5"]
+        pId = soup_post["id"]
+        pScore = soup_post["score"]
+        pSize = [soup_post["width"], soup_post["height"]]
+        pOwner = soup_post["creator_id"]
+        pTags = soup_post["tags"].split(" ")
+        preview = soup_post["preview_url"]
+        sample = soup_post["sample_url"] # thumbnail
+        change = soup_post["change"]
+        #directory = soup_post["directory"]
+        date = datetime.strptime(soup_post["created_at"], '%a %b %d %H:%M:%S %z %Y')
+        
+        if pFileUrl.endswith(".mp4"):
+            file_type = "video" 
+        elif pFileUrl.endswith(".gif"):
+            file_type = "gif"
+        else:
+            file_type = "image"
+            
+        return Post(pId, pHash, pScore, pSize, pFileUrl, pImage, preview, sample, pOwner, pTags, file_type, change, date)
     
-    def __init__(self, id: int, hash: str, score: int, size: list, fileurl: str,  image: str, preview: str, sample: str, owner: str, tags: list, file_type: str, directory: int, change: int):
+    def __init__(self, id: int, hash: str, score: int, size: list, fileurl: str,  image: str, preview: str, sample: str, owner: str, tags: list, file_type: str, change: int, date: str):
         self._file_type = file_type
         
         
@@ -48,8 +74,9 @@ class Post:
         self._sample = sample
         self._owner = owner
         self._tags = tags # > [TAG:str, TAG:str,...]
-        self._directory = directory
+        #self._directory = directory
         self._change = change
+        self._date = date
         
 
     @property
@@ -172,3 +199,10 @@ class Post:
         """
         
         return self._directory
+    @property
+    def date(self) -> str:
+        """Get date of post
+        Returns:
+            int: date of Post
+        """
+        return self._date
