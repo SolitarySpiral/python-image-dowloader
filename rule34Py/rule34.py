@@ -185,6 +185,7 @@ class rule34Py(Exception):
         myposts = soup.find_all("post")#[soup.post]
         #print(myposts)
         for post in myposts:
+            #print(post)
             small_part_posts.append(Post.from_xml(post))
         #for post in response.json():
             #print(post)
@@ -201,18 +202,14 @@ class rule34Py(Exception):
             formatted_url = f'{no_pid_url}&pid={counter_pid}'
             print(formatted_url)
             try:
-                response2 = requests.get(formatted_url+'&json=1', stream=True, headers=__headers__)               
-                #print(response2)
-                #print(response2.content)
-                #print(response2)
-                #print(response2.text)
-                if response2.status_code == 200:
-                    for post2 in response2.json():
-                        #print(post2)
-                        posts_inside_while.append(Post.from_json(post2))
+                response2 = requests.get(formatted_url, stream=True, headers=__headers__)               
+                soup2 = BeautifulSoup (response2.content, 'xml')
+                myposts2 = soup2.find_all("post")
+                for post in myposts2:
+                    small_part_posts.append(Post.from_xml(post))
                 print('вторая проверка small_part_posts',len(posts_inside_while))
-                if not len(posts_inside_while) == 0:
-                    [small_part_posts.append(posts_inside_while[i]) for i in range(len(posts_inside_while))]
+                #if not len(posts_inside_while) == 0:
+                #    [small_part_posts.append(posts_inside_while[i]) for i in range(len(posts_inside_while))]
             except Exception as ex:
                 raise ex
             if not len(small_part_posts) == 0:
