@@ -34,14 +34,16 @@ def runner():
     negative_tags = [] #['butt']
     extra_tags = []
     #---r34 tags
-    positive_tags = ['<3_eyes', 'diane_foxington']
+    #positive_tags = ['<3_eyes', 'diane_foxington']
     #positive_tags = ['nopanani']
     #positive_tags = ['jashinn']
     #positive_tags = ['kgovipositors']
     
 
     #---nozomi tags
-    #positive_tags = ['artist:imbi'] #['artist:IncredibleChris']
+    #positive_tags = ['artist:imbi']
+    #positive_tags = ['artist:IncredibleChris']
+    positive_tags = ['murahachiro']
     #extra_tags = [] #['artist:Xentho','sherry']
     
     #positive_tags = ['artist:CTFBM']
@@ -204,10 +206,29 @@ def runner():
     small_multilist.extend((positive_tags, extra_tags, negative_tags))
     full_multilist.append(small_multilist)
     small_multilist = []
+    #14
+    positive_tags = ['flatculture']
+    extra_tags = []
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #15
+    positive_tags = ['asakuraf']
+    extra_tags = []
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #15
+    positive_tags = ['crumbles']
+    extra_tags = []
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
     '''
     # pos only
-
-    #positive_tags = ['crumbles']
     #positive_tags = ['ponchi', 'uzumaki_himawari']
     #positive_tags = ['gawr_gura']
 
