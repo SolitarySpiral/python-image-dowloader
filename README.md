@@ -9,9 +9,10 @@
 nozomi.la API in Python.
 with rule34 API now!
 
-# Release 3.2.2
-- xml parse for rule_34
-- rule_34 files are uploaded with the post_date and the post_id now 
+# Release 3.2.4
+- rule_34 extra_tags fix with multiple tags. added a check for the type passed to search. for extra - type string, for positive - list
+- checked work with tags contains space " "
+- add to code a lot if expamples with nozomi and r34 tags to use.
 
 ## The original author and code
 https://github.com/Alfa-Q/python-nozomi
