@@ -1,8 +1,11 @@
 import api
 import os, re
-from datetime import datetime
+#from datetime import datetime
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
+#from multiprocessing import Pool, Process, Queue
+#from multiprocessing.dummy import Pool as ThreadPool
+#import asyncio
 from rule34Py import rule34Py
 from rule34Py.__vars__ import __headers__
 r34Py = rule34Py()
@@ -25,26 +28,30 @@ def runner():
     If you want to download from r34:
     from_r34 = True
     '''
+    #---- variants
     small_multilist = []
     full_multilist = []
-    workers = 20
+    workers = 20 #100 is good for check already exist files; 20 is good for first download. With 100 you will have corrupted files, that didn't loaded correctly
     from_r34 = True #False#True
     save_dir = 'D:/ghd/img/'
     relevant_date = None #datetime.strptime("2023-01-01", '%Y-%m-%d')
     negative_tags = [] #['butt']
     extra_tags = []
+    positive_tags = []
+    # ----
     #---r34 tags
-    #positive_tags = ['<3_eyes', 'diane_foxington']
+    #positive_tags = ['artist:VinnyInnocent']
+    #extra_tags = ['pixiv_id_31938779']
     #positive_tags = ['nopanani']
     #positive_tags = ['jashinn']
     #positive_tags = ['kgovipositors']
     
-
+    positive_tags = ['egg_implantation ']
+    extra_tags = ['oviposition', 'ovipositor', 'vaginal_oviposition', 'oral_oviposition', 'anal_oviposition', 'urethral_oviposition', 'nipple_oviposition','vaginal_egg_implantation', 'oral_egg_implantation', 'anal_egg_implantation', 'urethral_egg_implantation', 'nipple_egg_implantation','egg_bulge', 'eggnant', 'egg_inflation']
     #---nozomi tags
     #positive_tags = ['artist:imbi']
     #positive_tags = ['artist:IncredibleChris']
-    positive_tags = ['murahachiro']
-    #extra_tags = [] #['artist:Xentho','sherry']
+    #positive_tags = ['murahachiro']
     
     #positive_tags = ['artist:CTFBM']
     #extra_tags = ['pixiv_id_2534125']
@@ -56,6 +63,10 @@ def runner():
     #positive_tags = ['mingaru']
 
     #positive_tags = ['neku_oneneko']
+    #positive_tags = ['nekomimimix']
+    
+    #positive_tags = ['artist:Boppin Drawing']
+    #extra_tags = ['pixiv_id_44300758']
 
     #----FOR SINGLE DOWNLOADING (USE ONLY SINGLE OR MULTI AT ONCE)
     #Unlock the lines below to load the individual tags above
@@ -227,11 +238,65 @@ def runner():
     small_multilist.extend((positive_tags, extra_tags, negative_tags))
     full_multilist.append(small_multilist)
     small_multilist = []
+    #16
+    positive_tags = ['artist:imbi']
+    extra_tags = []
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #17
+    positive_tags = ['artist:VinnyInnocent']
+    extra_tags = ['pixiv_id_31938779']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #18
+    positive_tags = ['artist:Damz']
+    extra_tags = ['pixiv_id_45855571']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #19
+    positive_tags = ['artist:seven']
+    extra_tags = ['pixiv_id_12509439']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #20
+    positive_tags = ['artist:lunarctic']
+    extra_tags = ['pixiv_id_15473311']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
     '''
-    # pos only
-    #positive_tags = ['ponchi', 'uzumaki_himawari']
-    #positive_tags = ['gawr_gura']
+    '''
+    #1-----WITH DATE
+    '''
+    '''
+    #relevant_date = datetime.strptime("2023-11-11", '%Y-%m-%d')
+    positive_tags = ['sherry_birkin']
+    extra_tags = ['Sherry_Birkin']
+    negative_tags = ['resident_evil_6', 'kitsunerider', 'best_bes', 'pixiv_id_14250783', 'sawao']
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    #2
+    relevant_date = datetime.strptime("2023-11-11", '%Y-%m-%d')
+    positive_tags = ['artist:ポザ孕 / pozahara']
+    extra_tags = ['pixiv_id_448840']
+    negative_tags = []
+    small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    full_multilist.append(small_multilist)
+    small_multilist = []
+    '''
+    #----WITH DATE END
 
+
+    # ---
     '''there is no need to change the code below'''
     if not from_r34:
         '''for NOZOMI.la'''
@@ -245,11 +310,22 @@ def runner():
                 # go to dir
                 if not len(url_list) == 0:
                     string_tag = ''.join(internal_pos)
-                    folder_tag = re.sub(r'[<>;,:\s]', ' ', string_tag)
+                    folder_tag = re.sub(r'[<>/;,:\s]', ' ', string_tag)
                     if not os.path.exists(save_dir + folder_tag):
                         os.makedirs(save_dir + folder_tag)
                     os.chdir(save_dir + folder_tag)
                     print("Текущая директория изменилась на ", os.getcwd())
+                    
+                    '''Process Pool'''
+                    #threads= []
+                    #with ThreadPoolExecutor(max_workers=workers) as executor:
+                    #    loop = asyncio.get_running_loop()
+                    #    for post_url in url_list:
+                    #        task = loop.run_in_executor(executor, api.download_file, post_url, Path.cwd(), internal_neg, relevant_date)
+                    #       threads.append(task)
+                    #       await task
+                    #    await asyncio.gather(threads)
+                    '''threads'''
                     threads= []
                     with ThreadPoolExecutor(max_workers=workers) as executor:
                         for post_url in url_list:
@@ -267,7 +343,7 @@ def runner():
                 urls = list(urls)
                 filenames = list(filenames)
                 string_tag = ''.join(internal_pos)
-                folder_tag = re.sub(r'[<>;,:\s]', ' ', string_tag)
+                folder_tag = re.sub(r'[<>;/,:\s]', ' ', string_tag)
                 folder_tag = 'RULE_34 '+ folder_tag
                 if not os.path.exists(save_dir + folder_tag):
                     os.makedirs(save_dir + folder_tag)

@@ -2,6 +2,8 @@
 import struct
 from helpers import sanitize_tag, create_tag_filepath, create_post_filepath
 from itertools import chain
+#import aiofiles
+#import asyncio
 #from main imported
 import requests
 import os, re, shutil
@@ -166,9 +168,13 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, 
                     print('corrupted post', result.id)
                     corrupted_posts.append(result.id)'''
         else:
-            print('ушли в экстра') 
+            print('ушли в экстра')
+            search_ext = []
             search_pos = r34Py.search(positive_tags, negative_tags)
-            search_ext = r34Py.search(extra_tags, negative_tags)
+            for tag in extra_tags:
+                smal_search_ext = r34Py.search(tag, negative_tags)
+                for post in smal_search_ext:
+                    search_ext.append(post)
             for result in search_pos:
                 post_date = result.date
                 if post_date > relevant_post_date:
@@ -195,7 +201,12 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, 
                         c.append(f'{result.date}-{result.id}-{result.image}')
                         e.append(c)
                         c = []
-        except_intersection = [item for item in e if item not in d]
+        extra_nointersection = []
+        for i in range(len(e)):
+            if e.count(e[i])==1 or e[i] not in extra_nointersection:
+                extra_nointersection.append(e[i])
+        #extra_intersection = [item for item in e if item not in e]
+        except_intersection = [item for item in extra_nointersection if item not in d]
         rel_list = d + except_intersection
         #print('rel_list=',rel_list)
         #relevant_post_urls = set(positive_post_urls + list(set(extra_post_urls) - set(positive_post_urls)))
@@ -266,14 +277,14 @@ def download_file(url: str, filepath: Path, blacklist: list[str], relevant_post_
             if not len(set(current_post_tag_list).intersection(blacklist)) > 0:
                 for media_meta_data in current_post.imageurls:
                     filename = f'{current_post.date}{media_meta_data.dataid}.{media_meta_data.type}'
-                    filename = re.sub('[/:#%]', '', filename)
+                    filename = re.sub('[<>/:#%]', '', filename)
                     image_filepath = filepath.joinpath(filename)
                     if os.path.exists(image_filepath):
                         print('File already exists', image_filepath)
                     else:
                         print('File not exists', image_filepath)
                         with requests.get(media_meta_data.imageurl, stream=True, headers=headers) as r:
-                            with open(image_filepath, 'wb') as f:
+                            with open(image_filepath, 'wb') as f: #async with aiofiles.open(image_filepath, 'wb') as f:
                                 shutil.copyfileobj(r.raw, f)
                         print('File downloaded', image_filepath)
             else:

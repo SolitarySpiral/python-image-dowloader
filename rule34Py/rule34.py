@@ -1,10 +1,11 @@
 #!/usr/bin/python3
-import sys, time
+#import sys 
+import time
 import requests
 import random
 import urllib.parse as urlparse
 from bs4 import BeautifulSoup
-from enum import Enum
+#from enum import Enum
 from urllib.parse import parse_qs
 # From this module
 from rule34Py.api_urls import API_URLS, __base_url__
@@ -133,10 +134,15 @@ class rule34Py(Exception):
             return
         counter_pid = 0
         params = [
-            ["TAGS", "+".join(tags)],
+            #["TAGS", ""],
             ["LIMIT", str(limit)],
             ["NTAGS", "+-".join(negtags)]
         ]
+        
+        if type(tags) != str:
+            params.append(["TAGS", "+".join(tags)])
+        else:
+            params.append(["TAGS", tags])
         #ntag_chk = params[2][1]
         #ntag = params[0][1]
         #print(tags, negtags)
