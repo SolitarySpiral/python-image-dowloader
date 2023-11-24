@@ -213,14 +213,14 @@ class rule34Py(Exception):
                 myposts2 = soup2.find_all("post")
                 for post in myposts2:
                     small_part_posts.append(Post.from_xml(post))
-                print('вторая проверка small_part_posts',len(posts_inside_while))
+                print('вторая проверка small_part_posts',len(small_part_posts))
                 #if not len(posts_inside_while) == 0:
                 #    [small_part_posts.append(posts_inside_while[i]) for i in range(len(posts_inside_while))]
             except Exception as ex:
                 raise ex
             if not len(small_part_posts) == 0:
                 [ret_posts.append(small_part_posts[i]) for i in range(len(small_part_posts))]
-            time.sleep(2)
+            time.sleep(1)
             
         #[ret_posts.append(small_part_posts[i]) for i in range(len(small_part_posts))]
         print('всего получили внутри search',len(ret_posts))
