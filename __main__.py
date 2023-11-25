@@ -33,10 +33,11 @@ async def runner():
     If you want to download from r34:
     from_r34 = True
     '''
-    #---- variants
+    #---- declaration variants
     small_multilist = []
     full_multilist = []
     from_r34 = True #False#True
+    with_date = False
     save_dir = 'D:/ghd/img/'
     relevant_date = None #datetime.strptime("2023-01-01", '%Y-%m-%d')
     negative_tags = []
@@ -52,16 +53,24 @@ async def runner():
     #extra_tags = ['oviposition', 'ovipositor', 'vaginal_oviposition', 'oral_oviposition', 'anal_oviposition', 'urethral_oviposition', 'nipple_oviposition','vaginal_egg_implantation', 'oral_egg_implantation', 'anal_egg_implantation', 'urethral_egg_implantation', 'nipple_egg_implantation','egg_bulge', 'eggnant', 'egg_inflation']
     #---nozomi tags
     #positive_tags = ['artist:IncredibleChris']
-
+    '''
     #----FOR SINGLE DOWNLOADING (USE ONLY SINGLE OR MULTI AT ONCE)
     #Unlock the lines below to load the individual tags above
+    '''
+    #small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    #full_multilist.append(small_multilist)
+    '''
+    #----FOR MULTI DOWNLOADING
+    #Unlock one of the function and select: 1) from_r34 - true/false 2)with date - true/false
 
-    small_multilist.extend((positive_tags, extra_tags, negative_tags))
-    full_multilist.append(small_multilist)
-    #----
-    #UNLOCK MULTIDOWNLOADING ---if it unlocked tags above will be ignored
-    from_r34 = False
-    full_multilist = multi.get_multi(from_r34)
+    the tags are inside multi.py
+    '''
+    from_r34 = True
+    with_date = True
+
+    #full_multilist = multi.get_multi(from_r34)
+    #or
+    full_multilist = multi.get_multi_with_date(from_r34)
     # ---
     '''there is no need to change the code below'''
     if not from_r34:
@@ -69,7 +78,12 @@ async def runner():
         if not full_multilist == '':
             print(full_multilist)
             for i in range(len(full_multilist)):
-                internal_pos, internal_ext, internal_neg = full_multilist[i]
+                #multi check date
+                if with_date:
+                    internal_pos, internal_ext, internal_neg, relevant_date = full_multilist[i]
+                else:    
+                    internal_pos, internal_ext, internal_neg = full_multilist[i]
+
                 url_list = api.get_urls_list(internal_pos, internal_ext)#(positive_tags, extra_tags)
                 url_list = list(url_list)
                 url_list.sort()
@@ -90,7 +104,12 @@ async def runner():
         if not full_multilist == []:
             print(full_multilist)
             for i in range(len(full_multilist)):
-                internal_pos, internal_ext, internal_neg = full_multilist[i]
+                #multi check date
+                if with_date:
+                    internal_pos, internal_ext, internal_neg, relevant_date = full_multilist[i]
+                else:    
+                    internal_pos, internal_ext, internal_neg = full_multilist[i]
+
                 urls, filenames = api.r34_urls_files_list(internal_pos, internal_ext, internal_neg, relevant_date)
                 urls = list(urls)
                 filenames = list(filenames)

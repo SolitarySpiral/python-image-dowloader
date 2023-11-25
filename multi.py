@@ -1,3 +1,4 @@
+from datetime import datetime
 def get_multi(from_r34: bool):
     small_multilist = []
     full_multilist = []
@@ -173,21 +174,37 @@ def get_multi(from_r34: bool):
         small_multilist = []
     return full_multilist
 
-'''
-#1-----WITH DATE
-#relevant_date = datetime.strptime("2023-11-11", '%Y-%m-%d')
-positive_tags = ['sherry_birkin']
-extra_tags = ['Sherry_Birkin']
-negative_tags = ['resident_evil_6', 'kitsunerider', 'best_bes', 'pixiv_id_14250783', 'sawao']
-full_multilist.append(small_multilist)
-small_multilist = []
-#2
-relevant_date = datetime.strptime("2023-11-11", '%Y-%m-%d')
-positive_tags = ['artist:ポザ孕 / pozahara']
-extra_tags = ['pixiv_id_448840']
-negative_tags = []
-small_multilist.extend((positive_tags, extra_tags, negative_tags))
-full_multilist.append(small_multilist)
-small_multilist = []
+def get_multi_with_date(from_r34:bool):
+    small_multilist = []
+    full_multilist = []
+    if  from_r34:
+        #rule 34 
+        relevant_date = datetime.strptime("2023-11-11 00:00:00+00:00", '%Y-%m-%d %H:%M:%S%z') #be aware with the dates of rule34. it requires time
+        positive_tags = ['kgovipositors']
+        extra_tags = []
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags, relevant_date))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        
+    else:
+        # nozomi
+        #1-----WITH DATE nozomi
+        relevant_date = datetime.strptime("2023-11-11", '%Y-%m-%d')
+        positive_tags = ['sherry_birkin']
+        extra_tags = ['Sherry_Birkin']
+        negative_tags = ['resident_evil_6', 'kitsunerider', 'best_bes', 'pixiv_id_14250783', 'sawao']
+        small_multilist.extend((positive_tags, extra_tags, negative_tags, relevant_date))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #2
+        relevant_date = datetime.strptime("2023-11-11", '%Y-%m-%d')
+        positive_tags = ['artist:ポザ孕 / pozahara']
+        extra_tags = ['pixiv_id_448840']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags, relevant_date))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+    return full_multilist
 
-'''#----WITH DATE END
+#----WITH DATE END
