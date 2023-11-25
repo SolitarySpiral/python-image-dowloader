@@ -9,10 +9,10 @@
 nozomi.la API in Python.
 with rule34 API now!
 
-# Release 3.2.4
-- rule_34 extra_tags fix with multiple tags. added a check for the type passed to search. for extra - type string, for positive - list
-- checked work with tags contains space " "
-- add to code a lot if expamples with nozomi and r34 tags to use.
+# Release 3.2.5
+- изменен способ обращения к серверу на асинхронный с семафором в 20 к nozomi и 10 к rule34
+- изменена мультизагрузка, теги вынесены в отдельные функции в multi.py. Также теперь работает мультизагрузка с датами.
+- многопоточность убрана за ненадобностью.
 
 ## The original author and code
 https://github.com/Alfa-Q/python-nozomi
@@ -20,33 +20,30 @@ https://github.com/Alfa-Q/python-nozomi
 # How to use
 ## Rule34 API
 ### Мультизагрузка
-- Заблокируй single загрузку
-```
-#----FOR SINGLE DOWNLOADING (USE ONLY SINGLE OR MULTI AT ONCE)
-    #Unlock the lines below to load the individual tags above
-
-    small_multilist.extend((positive_tags, extra_tags, negative_tags))
-    full_multilist.append(small_multilist)
-#----
-```
-поставив # перед строками кода
-```
+``` python
+'''
+----FOR SINGLE DOWNLOADING (USE ONLY SINGLE OR MULTI AT ONCE)
+Unlock the lines below to load the individual tags above
+'''
 #small_multilist.extend((positive_tags, extra_tags, negative_tags))
 #full_multilist.append(small_multilist)
+'''
+----FOR MULTI DOWNLOADING
+Unlock one of the function and select: 1) from_r34 - true/false 2)with date - true/false
+
+the tags are inside multi.py
+'''
+from_r34 = True
+with_date = True
+
+#full_multilist = multi.get_multi(from_r34)
+#or
+full_multilist = multi.get_multi_with_date(from_r34)
+# ---
 ```
-- Найди в коде
-```
-===Multidownloading  Rule 34===
-```
-Прочитай как оно работает и как добавлять в мультизагрузку твой набор тегов.
-Затем разблокируй список мультизагрузки, убрав экранирующие символы комментария С ОБОИХ СТОРОН.
-```
-''' # <-- HERE IS UNLOCK MULTI for RULE 34
-```
-- мультизагрузка для NOZOMI работает аналогичным образом
+- мультизагрузка для NOZOMI - ```from_r34 = False```
 ### Скачать посты c rule34
 ``` python
-workers = 20
 from_r34 = True
 save_dir = 'D:/ghd/img/'
 relevant_date = None
@@ -58,7 +55,6 @@ positive_tags = ['nopanani']
 ## Nozomi API
 ### Скачать все посты по одному тегу:
 ```python
-workers = 20
 from_r34 = False
 save_dir = 'D:/ghd/img/'
 relevant_date = None
@@ -72,7 +68,6 @@ positive_tags = ['crumbles']
 ```
 ### Скачать посты по одному тегу, новее конкретной даты:
 ```python
-workers = 20
 from_r34 = False
 relevant_date = datetime.strptime("2023-07-11", '%Y-%m-%d')
 negative_tags = []
@@ -81,7 +76,6 @@ extra_tags = []
 ```
 ### Скачать посты по пересечению двух тегов и с исключением другого:
 ```python
-workers = 20
 from_r34 = False
 relevant_date = None
 negative_tags = ['butt']
@@ -92,7 +86,6 @@ extra_tags = []
 ```
 ### Скачать посты по одному персонажу, совместив разные варианты тегов персонажа (японские теги тоже работают):
 ```python
-workers = 20
 from_r34 = False
 relevant_date = None
 negative_tags = []
@@ -110,7 +103,6 @@ extra_tags = ['Riley', 'rileyandersen']
 ```
 ### Скачать все посты одного автора более углубленно:
 ```python
-workers = 20
 from_r34 = False
 relevant_date = None
 negative_tags = []
@@ -128,7 +120,6 @@ extra_tags = ['artist:ひ~げぇぽん','pixiv_id_54698934']
 ```
 ### Скачать все посты нескольких авторов, где их общие работы схлопываются и скачиваются единожды:
 ```python
-workers = 20
 from_r34 = False
 positive_tags = ['lesdias']
 extra_tags = ['artist:SPICYdias', 'pixiv_id_15079627', 'artist:irispoplar', 'irispoplar', 'pixiv_id_25423811']
