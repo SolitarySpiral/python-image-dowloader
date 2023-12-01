@@ -188,3 +188,12 @@ def _encode_tag(sanitized_tag: str) -> str:
     convert_char_to_hex = lambda c: f"%{format(ord(c.group(0)), 'x')}"
     encoded_tag = re.sub('[;/?:@=&]', convert_char_to_hex, sanitized_tag)
     return encoded_tag
+
+def save_ids_to_file(ids, filename):
+    with open(filename, 'w') as file:
+        for id in ids:
+            file.write(str(id) + '\n')
+
+def remove_duplicates(ids1, ids2):
+    ids2 = set(ids2)
+    return list(ids2 - set(ids1))
