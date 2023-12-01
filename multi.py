@@ -24,6 +24,23 @@ def get_multi(from_r34: bool):
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
         small_multilist = []
+        #4
+        positive_tags = ['egg_implantation ']
+        extra_tags = ['oviposition', 'ovipositor', 'tentacle_ovipositor',
+                    'vaginal_oviposition', 'oral_oviposition', 'anal_oviposition', 'urethral_oviposition', 'nipple_oviposition',
+                    'vaginal_egg_implantation', 'oral_egg_implantation', 'anal_egg_implantation', 'urethral_egg_implantation', 'nipple_egg_implantation',
+                    'egg_bulge', 'eggnant', 'egg_inflation']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #5
+        positive_tags = ['murahachiro']
+        extra_tags = []
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
     else:        # NOZOMI list tags
         #1
         positive_tags = ['Riley_Anderson']
@@ -54,8 +71,15 @@ def get_multi(from_r34: bool):
         full_multilist.append(small_multilist)
         small_multilist = []
         #5
-        positive_tags = ['marie_rose']
-        extra_tags = ['マリー・ローズ','marie', 'marierose']
+        positive_tags = ['uzumaki_himawari']
+        extra_tags = ['うずまきヒマワリ']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #5.2
+        positive_tags = ['uchiha_sarada']
+        extra_tags = ['うちはサラダ']
         negative_tags = []
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
@@ -160,7 +184,7 @@ def get_multi(from_r34: bool):
         small_multilist = []
         #19
         positive_tags = ['artist:seven']
-        extra_tags = ['pixiv_id_12509439']
+        extra_tags = ['pixiv_id_12509439', 'artist:PoTON618']
         negative_tags = []
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
@@ -172,6 +196,98 @@ def get_multi(from_r34: bool):
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
         small_multilist = []
+        #21
+        positive_tags = ['artist:Boppin Drawing']
+        extra_tags = ['boppin']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #22
+        positive_tags = ['sabamen']
+        extra_tags = []
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #23
+        positive_tags = ['sherry_birkin']
+        extra_tags = ['Sherry_Birkin']
+        negative_tags = ['resident_evil_6', 'kitsunerider', 'best_bes', 'pixiv_id_14250783', 'sawao']
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #24
+        positive_tags = ['artist:ポザ孕 / pozahara']
+        extra_tags = ['pixiv_id_448840']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #25
+        positive_tags = ['kuroki_tomoko']
+        extra_tags = ['黒木智子']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #26
+        positive_tags = ['marie_rose']
+        extra_tags = ['マリー・ローズ','marie', 'marierose']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #27
+        positive_tags = ['artist:CTFBM']
+        extra_tags = ['pixiv_id_2534125']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #28
+        positive_tags = ['artist:IncredibleChris']
+        extra_tags = ['pixiv_id_27147509']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #29
+        positive_tags = ['konarofu']
+        extra_tags = []
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #30
+        positive_tags = ['atela']
+        extra_tags = []
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #31
+        positive_tags = ['mingaru']
+        extra_tags = []
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #31
+        positive_tags = ['nekomimimix']
+        extra_tags = []
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #32
+        positive_tags = ['neku_oneneko']
+        extra_tags = []
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        
     return full_multilist
 
 def get_multi_with_date(from_r34:bool):
@@ -201,6 +317,22 @@ def get_multi_with_date(from_r34:bool):
         relevant_date = datetime.strptime("2023-11-11", '%Y-%m-%d')
         positive_tags = ['artist:ポザ孕 / pozahara']
         extra_tags = ['pixiv_id_448840']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags, relevant_date))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #3
+        relevant_date = datetime.strptime("2023-11-27", '%Y-%m-%d')
+        positive_tags = ['kuroki_tomoko']
+        extra_tags = ['黒木智子']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags, relevant_date))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #4
+        relevant_date = datetime.strptime("2023-11-27", '%Y-%m-%d')
+        positive_tags = ['marie_rose']
+        extra_tags = ['マリー・ローズ','marie', 'marierose']
         negative_tags = []
         small_multilist.extend((positive_tags, extra_tags, negative_tags, relevant_date))
         full_multilist.append(small_multilist)

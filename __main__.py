@@ -4,6 +4,7 @@ from pathlib import Path
 import asyncio
 from rule34Py import rule34Py
 from rule34Py.__vars__ import __headers__
+from helpers import save_ids_to_file, remove_duplicates
 import multi
 r34Py = rule34Py()
 semaphoreNozomi = asyncio.Semaphore(20) #Not recommends change it
@@ -34,6 +35,8 @@ async def runner():
     from_r34 = True
     '''
     #---- declaration variants
+    filename = '!ids.txt'
+    r_filename = '!fnames.txt'
     small_multilist = []
     full_multilist = []
     from_r34 = True #False#True
@@ -46,13 +49,18 @@ async def runner():
     # ----
     #---r34 tags
     #positive_tags = ['nopanani']
-    positive_tags = ['jashinn']
+    #positive_tags = ['jashinn']
     #positive_tags = ['kgovipositors']
     
-    #positive_tags = ['egg_implantation ']
-    #extra_tags = ['oviposition', 'ovipositor', 'vaginal_oviposition', 'oral_oviposition', 'anal_oviposition', 'urethral_oviposition', 'nipple_oviposition','vaginal_egg_implantation', 'oral_egg_implantation', 'anal_egg_implantation', 'urethral_egg_implantation', 'nipple_egg_implantation','egg_bulge', 'eggnant', 'egg_inflation']
+    positive_tags = ['egg_implantation ']
+    extra_tags = ['oviposition', 'ovipositor', 'tentacle_ovipositor',
+                  'vaginal_oviposition', 'oral_oviposition', 'anal_oviposition', 'urethral_oviposition', 'nipple_oviposition',
+                  'vaginal_egg_implantation', 'oral_egg_implantation', 'anal_egg_implantation', 'urethral_egg_implantation', 'nipple_egg_implantation',
+                  'egg_bulge', 'eggnant', 'egg_inflation']
     #---nozomi tags
-    #positive_tags = ['artist:IncredibleChris']
+    #positive_tags = ['sabamen']
+    #positive_tags = ['uzumaki_himawari']
+    #extra_tags = ['うずまきヒマワリ']
     '''
     #----FOR SINGLE DOWNLOADING (USE ONLY SINGLE OR MULTI AT ONCE)
     #Unlock the lines below to load the individual tags above
@@ -65,12 +73,12 @@ async def runner():
 
     the tags are inside multi.py
     '''
-    from_r34 = True
-    with_date = True
+    from_r34 = False
+    with_date = False
 
-    #full_multilist = multi.get_multi(from_r34)
+    full_multilist = multi.get_multi(from_r34)
     #or
-    full_multilist = multi.get_multi_with_date(from_r34)
+    #full_multilist = multi.get_multi_with_date(from_r34)
     # ---
     '''there is no need to change the code below'''
     if not from_r34:
@@ -94,11 +102,32 @@ async def runner():
                     if not os.path.exists(save_dir + folder_tag):
                         os.makedirs(save_dir + folder_tag)
                     os.chdir(save_dir + folder_tag)
-                    print("Текущая директория изменилась на ", os.getcwd())
-                    tasks= []
-                    for post_url in url_list:
-                        tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
-                    await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                    print("Текущая директория изменилась на ", os.getcwd())                   
+                    if not os.path.exists(filename):
+                        print('ids File not exists:', filename)
+                        tasks= []
+                        for post_url in url_list:
+                            tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
+                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        save_ids_to_file(url_list, filename) # Сохранение списка id в файл
+                        print(f'File {filename} saved with {len(url_list)} ids')
+                    else:
+                        # Чтение id из файла
+                        with open(filename, 'r') as file:
+                            lines = file.read().splitlines()
+                            list1_from_file = [str(line) for line in lines]
+                        print(f'File exists: {filename} with {len(list1_from_file)} ids')
+                        # Получение уникальных id из второго списка, отсутствующих в первом списке
+                        list2_unique = remove_duplicates(list1_from_file, url_list)
+                        tasks= []
+                        for post_url in list2_unique:
+                            tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
+                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        # Дописывание оставшихся id в файл
+                        with open(filename, 'a') as file:
+                            for id in list2_unique:
+                                file.write(str(id) + '\n')
+                        print(f'File {filename} saved with {len(list2_unique)} new ids')
     else:
         '''FOR RULE34.xxx'''
         if not full_multilist == []:
@@ -120,10 +149,54 @@ async def runner():
                     os.makedirs(save_dir + folder_tag)
                 os.chdir(save_dir + folder_tag)
                 print("Текущая директория изменилась на ", os.getcwd())
-                tasks= []
-                for i in range(len(urls)):
-                    tasks.append(asyncio.create_task(r34_download_async(urls[i], filenames[i])))
-                await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                if not os.path.exists(filename) and not os.path.exists(r_filename):
+                    print('urls File not exists:', filename)
+                    print('filenames File not exists:', r_filename)
+                    tasks= []
+                    for i in range(len(urls)):
+                        tasks.append(asyncio.create_task(r34_download_async(urls[i], filenames[i])))
+                    await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                    save_ids_to_file(urls, filename) # Сохранение списка url в файл
+                    print(f'File {filename} saved with {len(urls)} ids')
+                    save_ids_to_file(filenames, r_filename) # Сохранение списка filenames в файл
+                    print(f'File {r_filename} saved with {len(filenames)} ids')
+                else:
+                    try:
+                        # Чтение id из файла
+                        with open(filename, 'r') as file:
+                            lines = file.read().splitlines()
+                            list1_from_file = [str(line) for line in lines]
+                        print(f'File exists: {filename} with {len(list1_from_file)} ids')
+                        # Получение уникальных id из второго списка, отсутствующих в первом списке
+                        urls_unique = remove_duplicates(list1_from_file, urls)
+                        # Чтение id из файла
+                        with open(r_filename, 'r') as file:
+                            lines = file.read().splitlines()
+                            list1_from_file = [str(line) for line in lines]
+                        print(f'File exists: {r_filename} with {len(list1_from_file)} ids')
+                        # Получение уникальных id из второго списка, отсутствующих в первом списке
+                        filenames_unique = remove_duplicates(list1_from_file, filenames)
+                        tasks= []
+                        for i in range(len(urls_unique)):
+                            tasks.append(asyncio.create_task(r34_download_async(urls_unique[i], filenames_unique[i])))
+                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        # Дописывание оставшихся id в файл
+                        with open(filename, 'a') as file:
+                            for id in urls_unique:
+                                file.write(str(id) + '\n')
+                        print(f'File {filename} saved with {len(urls_unique)} new ids')
+                        with open(r_filename, 'a') as file:
+                            for id in filenames_unique:
+                                file.write(str(id) + '\n')
+                        print(f'File {r_filename} saved with {len(filenames_unique)} new ids')
+                    except FileNotFoundError:
+                        print('the file of urls or filenames doesnt exist. You should delete another file and retry')
+                        exit()
+
+                #tasks= []
+                #for i in range(len(urls)):
+                #    tasks.append(asyncio.create_task(r34_download_async(urls[i], filenames[i])))
+                #await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
                 #threads= []
                 #with ThreadPoolExecutor(max_workers=workers) as executor:
                 #    for i in range(len(urls)):#for result in search:
