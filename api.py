@@ -6,6 +6,7 @@ import aiohttp
 import aiofiles
 import asyncio
 #from main imported
+from helpers import tag_counts
 import requests
 import os, re, shutil
 from datetime import datetime
@@ -46,6 +47,10 @@ async def async_nozomi_download_file(url: str, filepath: Path, blacklist: list[s
                         current_post_tag_list.append(current_post.copyright[i].tag)
                     for i in range(len(current_post.general)):
                         current_post_tag_list.append(current_post.general[i].tag)
+
+                    for tag in current_post_tag_list:
+                        tag_counts[tag] += 1
+                    #print(tag_counts.items())
                     if not len(set(current_post_tag_list).intersection(blacklist)) > 0:
                         for media_meta_data in current_post.imageurls:
                             filename = f'{current_post.date}{media_meta_data.dataid}.{media_meta_data.type}'
@@ -65,6 +70,7 @@ async def async_nozomi_download_file(url: str, filepath: Path, blacklist: list[s
                                 print('File downloaded', image_filepath)
                     else:
                         print('Post in blacklist', current_post.postid)
+                    
     except aiohttp.ClientError as e:
         return e
     except Exception as ex:

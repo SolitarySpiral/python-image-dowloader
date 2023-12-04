@@ -287,6 +287,27 @@ def get_multi(from_r34: bool):
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
         small_multilist = []
+        #33
+        positive_tags = ['artist:はみがっこ']
+        extra_tags = ['pixiv_id_34150897']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #34
+        positive_tags = ['artist:露実']
+        extra_tags = ['pixiv_id_33929098']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #35
+        positive_tags = ['蟲姦']
+        extra_tags = ['苗床', '寄生', '産卵', '寄生乗っ取り', '海生物姦']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
         
     return full_multilist
 
