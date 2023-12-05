@@ -116,11 +116,10 @@ async def runner():
                     # загрузка файлов                   
                     if not os.path.exists(filename):
                         print('ids File not exists:', filename)
-                        with HTTPConnectionPool(host='https://j.nozomi.la/', maxsize=10) as conn:
-                            tasks= []
-                            for post_url in url_list:
-                                tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
-                            await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        tasks= []
+                        for post_url in url_list:
+                            tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
+                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
                         
                         '''threads= []
                         with ThreadPoolExecutor(max_workers=20) as executor:
