@@ -19,7 +19,7 @@ from rule34Py.__vars__ import __headers__
 r34Py = rule34Py()
 #end main imported
 
-async def async_nozomi_download_file(url: str, filepath: Path, blacklist: list[str], relevant_post_date = None):
+async def async_nozomi_download_file(session, url: str, filepath: Path, blacklist: list[str], relevant_post_date = None):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -32,7 +32,7 @@ async def async_nozomi_download_file(url: str, filepath: Path, blacklist: list[s
         relevant_post_date = datetime.strptime("1900-01-01", '%Y-%m-%d')
     filepath.mkdir(parents=True, exist_ok=True)
     try:
-        async with aiohttp.ClientSession() as session:
+        #async with aiohttp.ClientSession(keepalive=True) as session:
             async with session.get(url) as response:
                 post_data = await response.json()
                 current_post = from_dict(data_class=Post, data=post_data)
@@ -77,7 +77,7 @@ async def async_nozomi_download_file(url: str, filepath: Path, blacklist: list[s
     except Exception as ex:
         return ex
 
-async def async_r34_download_file(url, file_name):
+async def async_r34_download_file(session, url, file_name):
     #res = requests.get(url, stream = True)
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0',
@@ -92,14 +92,14 @@ async def async_r34_download_file(url, file_name):
         print('File already exists', file_name)
     else:
         print('File not exists', file_name)
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as r:
-                async with aiofiles.open(file_name, 'wb') as f:
-                    while True:
-                        chunk = await r.content.read(1024)
-                        if not chunk:
-                            break
-                        await f.write(chunk)
+        #async with aiohttp.ClientSession(keepalive=True) as session:
+        async with session.get(url, headers=headers) as r:
+            async with aiofiles.open(file_name, 'wb') as f:
+                while True:
+                    chunk = await r.content.read(1024)
+                    if not chunk:
+                        break
+                    await f.write(chunk)
         print('File downloaded', file_name)
 
 def _get_post_urls(tags: list[str]) -> list[str]:

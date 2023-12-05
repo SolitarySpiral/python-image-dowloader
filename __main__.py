@@ -2,28 +2,25 @@ import os, re
 from datetime import datetime
 from pathlib import Path
 import asyncio
+import aiohttp
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 from rule34Py import rule34Py
 from rule34Py.__vars__ import __headers__
 from helpers import save_ids_to_file, remove_duplicates, tag_counts, load_dictionary, save_dictionary, merge_dictionaries
-import multi
+import multi, api
 r34Py = rule34Py()
-semaphoreNozomi = asyncio.Semaphore(30) #Not recommends change it
+semaphoreNozomi = asyncio.Semaphore(10) #Not recommends change it
 semaphore34 = asyncio.Semaphore(10) #Not recommends change it
-import api
-
-from threading import Thread
-from urllib3 import HTTPConnectionPool
-from multiprocessing import Process, cpu_count, Queue, JoinableQueue, Event
 
 
-async def download_async(post_url, path, internal_neg, relevant_date):
+
+async def download_async(sess, post_url, path, internal_neg, relevant_date):
         async with semaphoreNozomi:
-            await api.async_nozomi_download_file(post_url, path, internal_neg, relevant_date)
+            await api.async_nozomi_download_file(sess, post_url, path, internal_neg, relevant_date)
 
-async def r34_download_async(url, file_name):
+async def r34_download_async(sess, url, file_name):
         async with semaphore34:
-            await api.async_r34_download_file(url, file_name)
+            await api.async_r34_download_file(sess, url, file_name)
 
 async def runner():
     '''You should always have the following variables filled in in one instance for 1 upload
@@ -116,10 +113,11 @@ async def runner():
                     # загрузка файлов                   
                     if not os.path.exists(filename):
                         print('ids File not exists:', filename)
-                        tasks= []
-                        for post_url in url_list:
-                            tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
-                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session:
+                            tasks= []
+                            for post_url in url_list:
+                                tasks.append(asyncio.create_task(download_async(session, post_url, Path.cwd(), internal_neg, relevant_date)))
+                            await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
                         
                         '''threads= []
                         with ThreadPoolExecutor(max_workers=20) as executor:
@@ -131,9 +129,6 @@ async def runner():
                             for post_url in url_list:
                                 Processes.append(p_executor.submit(api.download_file, post_url, Path.cwd(), internal_neg, relevant_date))
                         p_executor.shutdown'''
-
-                        
-
 
                         save_ids_to_file(url_list, filename) # Сохранение списка id в файл
                         print(f'File {filename} saved with {len(url_list)} ids')
@@ -151,11 +146,11 @@ async def runner():
                         print(f'File exists: {filename} with {len(list1_from_file)} ids')
                         # Получение уникальных id из второго списка, отсутствующих в первом списке
                         list2_unique = remove_duplicates(list1_from_file, url_list)
-
-                        tasks= []
-                        for post_url in list2_unique:
-                            tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
-                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session:
+                            tasks= []
+                            for post_url in url_list:
+                                tasks.append(asyncio.create_task(download_async(session, post_url, Path.cwd(), internal_neg, relevant_date)))
+                            await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
 
 
                         # Дописывание оставшихся id в файл
@@ -196,10 +191,11 @@ async def runner():
                 if not os.path.exists(filename) and not os.path.exists(r_filename):
                     print('urls File not exists:', filename)
                     print('filenames File not exists:', r_filename)
-                    tasks= []
-                    for i in range(len(urls)):
-                        tasks.append(asyncio.create_task(r34_download_async(urls[i], filenames[i])))
-                    await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session:
+                        tasks= []
+                        for i in range(len(urls)):
+                            tasks.append(asyncio.create_task(r34_download_async(session, urls[i], filenames[i])))
+                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
                     save_ids_to_file(urls, filename) # Сохранение списка url в файл
                     print(f'File {filename} saved with {len(urls)} ids')
                     save_ids_to_file(filenames, r_filename) # Сохранение списка filenames в файл
