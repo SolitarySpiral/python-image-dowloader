@@ -75,8 +75,8 @@ async def runner():
 
     the tags are inside multi.py
     '''
-    from_r34 = True
-    #with_date = False
+    from_r34 = False
+    with_date = False
 
     #full_multilist = multi.get_multi(from_r34)
     #or
