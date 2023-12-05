@@ -9,8 +9,8 @@ from rule34Py.__vars__ import __headers__
 from helpers import save_ids_to_file, remove_duplicates, tag_counts, load_dictionary, save_dictionary, merge_dictionaries
 import multi, api
 r34Py = rule34Py()
-semaphoreNozomi = asyncio.Semaphore(10) #Not recommends change it
-semaphore34 = asyncio.Semaphore(10) #Not recommends change it
+semaphoreNozomi = asyncio.Semaphore(20) #Not recommends change it
+semaphore34 = asyncio.Semaphore(20) #Not recommends change it
 
 
 
@@ -148,7 +148,7 @@ async def runner():
                         list2_unique = remove_duplicates(list1_from_file, url_list)
                         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session: #!connector aiohttp.TCPConnector() boosted
                             tasks= []
-                            for post_url in url_list:
+                            for post_url in list2_unique:
                                 tasks.append(asyncio.create_task(download_async(session, post_url, Path.cwd(), internal_neg, relevant_date)))
                             await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
 
@@ -238,7 +238,7 @@ async def runner():
                         filenames_unique = remove_duplicates(list1_from_file, filenames)                      
                         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session: #!connector aiohttp.TCPConnector() boosted
                             tasks= []
-                            for i in range(len(urls)):
+                            for i in range(len(urls_unique)):
                                 tasks.append(asyncio.create_task(r34_download_async(session, urls[i], filenames[i])))
                             await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
                     #cохранение файлов
