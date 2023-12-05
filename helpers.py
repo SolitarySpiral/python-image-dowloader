@@ -8,7 +8,7 @@ the simplicity of the current API, there isn't really a point right now.
 
 """
 import json
-import re
+import re, os
 from typing import ForwardRef
 from collections import defaultdict
 from exceptions import InvalidTagFormat, InvalidUrlFormat
@@ -22,14 +22,20 @@ tag_counts = defaultdict(int)
 # загружает словарь, если он уже существует
 def load_dictionary(file_path):
     print('грузим словарь')
-    with open(file_path, 'r', encoding="utf-8") as file:
-        dictionary = json.load(file)
-    print('загрузили словарь')
+    try:
+        with open(file_path, 'r', encoding="utf-8") as file:
+            dictionary = json.load(file)
+        print('загрузили словарь')
+    except Exception as e:
+        print('Получена ошибка загрузки словаря:', e)
+    finally:
+        os.remove(file_path)
+        dictionary = {}
+        print('удалили словарь')
     return dictionary
 
 # сохраняет словарь 
 def save_dictionary(dictionary, file_path):
-    print('сохраняем словарь')
     with open(file_path, 'w', encoding="utf-8") as file:
         json.dump(dictionary, file)
     print('сохранили словарь')

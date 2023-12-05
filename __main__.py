@@ -2,7 +2,7 @@ import os, re
 from datetime import datetime
 from pathlib import Path
 import asyncio
-#from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 from rule34Py import rule34Py
 from rule34Py.__vars__ import __headers__
 from helpers import save_ids_to_file, remove_duplicates, tag_counts, load_dictionary, save_dictionary, merge_dictionaries
@@ -11,6 +11,11 @@ r34Py = rule34Py()
 semaphoreNozomi = asyncio.Semaphore(30) #Not recommends change it
 semaphore34 = asyncio.Semaphore(10) #Not recommends change it
 import api
+
+from threading import Thread
+from urllib3 import HTTPConnectionPool
+from multiprocessing import Process, cpu_count, Queue, JoinableQueue, Event
+
 
 async def download_async(post_url, path, internal_neg, relevant_date):
         async with semaphoreNozomi:
@@ -50,8 +55,8 @@ async def runner():
     positive_tags = []
     # ----
     #---r34 tags
-    #positive_tags = ['nopanani']
-    positive_tags = ['jashinn']
+    positive_tags = ['nopanani']
+    #positive_tags = ['jashinn']
     #positive_tags = ['kgovipositors']
     
     #positive_tags = ['egg_implantation ']
@@ -67,8 +72,8 @@ async def runner():
     #----FOR SINGLE DOWNLOADING (USE ONLY SINGLE OR MULTI AT ONCE)
     #Unlock the lines below to load the individual tags above
     '''
-    small_multilist.extend((positive_tags, extra_tags, negative_tags))
-    full_multilist.append(small_multilist)
+    #small_multilist.extend((positive_tags, extra_tags, negative_tags))
+    #full_multilist.append(small_multilist)
     '''
     #----FOR MULTI DOWNLOADING
     #Unlock one of the function and select: 1) from_r34 - true/false 2)with date - true/false
@@ -76,9 +81,9 @@ async def runner():
     the tags are inside multi.py
     '''
     from_r34 = False
-    with_date = False
+    #with_date = False
 
-    #full_multilist = multi.get_multi(from_r34)
+    full_multilist = multi.get_multi(from_r34)
     #or
     #full_multilist = multi.get_multi_with_date(from_r34)
     # ---
@@ -93,7 +98,10 @@ async def runner():
                     internal_pos, internal_ext, internal_neg, relevant_date = full_multilist[i]
                 else:    
                     internal_pos, internal_ext, internal_neg = full_multilist[i]
-                tag_counts.clear #очистка списка тегов перед началось проверок и загрузок
+                #очистка списка тегов перед началось проверок и загрузок
+                tag_counts.clear()
+                merged_dictionary = sorted_dict = dictionary1 = {}
+
                 url_list = api.get_urls_list(internal_pos, internal_ext)#(positive_tags, extra_tags)
                 url_list = list(url_list)
                 url_list.sort()
@@ -108,10 +116,26 @@ async def runner():
                     # загрузка файлов                   
                     if not os.path.exists(filename):
                         print('ids File not exists:', filename)
-                        tasks= []
-                        for post_url in url_list:
-                            tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
-                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        with HTTPConnectionPool(host='https://j.nozomi.la/', maxsize=10) as conn:
+                            tasks= []
+                            for post_url in url_list:
+                                tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
+                            await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        
+                        '''threads= []
+                        with ThreadPoolExecutor(max_workers=20) as executor:
+                            for post_url in url_list:
+                                threads.append(executor.submit(api.download_file, post_url, Path.cwd(), internal_neg, relevant_date))'''
+                        
+                        '''Processes = []
+                        with ProcessPoolExecutor(max_workers=16) as p_executor:
+                            for post_url in url_list:
+                                Processes.append(p_executor.submit(api.download_file, post_url, Path.cwd(), internal_neg, relevant_date))
+                        p_executor.shutdown'''
+
+                        
+
+
                         save_ids_to_file(url_list, filename) # Сохранение списка id в файл
                         print(f'File {filename} saved with {len(url_list)} ids')
                         # сохранение тегов
@@ -128,10 +152,13 @@ async def runner():
                         print(f'File exists: {filename} with {len(list1_from_file)} ids')
                         # Получение уникальных id из второго списка, отсутствующих в первом списке
                         list2_unique = remove_duplicates(list1_from_file, url_list)
+
                         tasks= []
                         for post_url in list2_unique:
                             tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
                         await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+
+
                         # Дописывание оставшихся id в файл
                         with open(filename, 'a') as file:
                             for id in list2_unique:
@@ -153,7 +180,9 @@ async def runner():
                     internal_pos, internal_ext, internal_neg, relevant_date = full_multilist[i]
                 else:    
                     internal_pos, internal_ext, internal_neg = full_multilist[i]
-                tag_counts.clear #очистка списка тегов перед началось проверок и загрузок
+                #очистка списка тегов перед началось проверок и загрузок
+                tag_counts.clear()
+                merged_dictionary = sorted_dict = dictionary1 = {}
                 urls, filenames = api.r34_urls_files_list(internal_pos, internal_ext, internal_neg, relevant_date)
                 urls = list(urls)
                 filenames = list(filenames)
@@ -178,6 +207,7 @@ async def runner():
                     print(f'File {r_filename} saved with {len(filenames)} ids')
                     # сохранение тегов
                     if os.path.exists(tags_filename):
+                            print('tags File exists:', tags_filename)
                             # Загрузка первого словаря из файла
                             dictionary1 = load_dictionary(tags_filename)
                             # Слияние словарей
@@ -187,9 +217,10 @@ async def runner():
                             save_dictionary(merged_dictionary, tags_filename)
                             print(f'File {tags_filename} saved with {len(merged_dictionary)} tags')
                     else:
+                        print('tags File not exists:', tags_filename)
                         sorted_dict = {k: tag_counts[k] for k in sorted(tag_counts)}
                         # создание нового, если не существует
-                        with open(tags_filename, "w") as file:
+                        with open(tags_filename, "w", encoding="UTF-8") as file:
                             for tag, count in sorted_dict.items():
                                 file.write(f"{tag}: {count}\n")
                         print(f'File {tags_filename} saved with {len(sorted_dict)} new tags')
@@ -235,8 +266,9 @@ async def runner():
                             save_dictionary(merged_dictionary, tags_filename)
                             print(f'File {tags_filename} saved with {len(merged_dictionary)} tags')
                         else:
+                            sorted_dict = {k: tag_counts[k] for k in sorted(tag_counts)}
                             # создание нового, если не существует
-                            with open(tags_filename, "w") as file:
+                            with open(tags_filename, "w", encoding="UTF-8") as file:
                                 for tag, count in sorted_dict.items():
                                     file.write(f"{tag}: {count}\n")
                             print(f'File {tags_filename} saved with {len(sorted_dict)} new tags')
@@ -244,23 +276,6 @@ async def runner():
                     except FileNotFoundError:
                         print('the file of urls or filenames doesnt exist. You should delete another file and retry')
                         exit()
-
-                #tasks= []
-                #for i in range(len(urls)):
-                #    tasks.append(asyncio.create_task(r34_download_async(urls[i], filenames[i])))
-                #await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
-                #threads= []
-                #with ThreadPoolExecutor(max_workers=workers) as executor:
-                #    for i in range(len(urls)):#for result in search:
-                #        try:
-                #            if not (filenames[i] == '' and urls[i] == ''):
-                #                threads.append(executor.submit(api.r34_download, urls[i], filenames[i]))
-                #        except Exception as ex:
-                #            print(ex)
-                #            pass
-                #        
-                #    for task in as_completed(threads):
-                #        pass
 
 
 if __name__ == '__main__':

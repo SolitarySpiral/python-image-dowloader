@@ -49,7 +49,8 @@ async def async_nozomi_download_file(url: str, filepath: Path, blacklist: list[s
                         current_post_tag_list.append(current_post.general[i].tag)
 
                     for tag in current_post_tag_list:
-                        tag_counts[tag] += 1
+                        if not tag == '':
+                            tag_counts[tag] += 1 
                     #print(tag_counts.items())
                     if not len(set(current_post_tag_list).intersection(blacklist)) > 0:
                         for media_meta_data in current_post.imageurls:

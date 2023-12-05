@@ -191,8 +191,11 @@ class rule34Py(Exception):
         for post in myposts:
             _post = Post.from_xml(post)
             post_tags = _post.tags
+            #print(post_tags)
             for tag in post_tags:
-                tag_counts[tag] += 1
+                #print(tag)
+                if not tag == '':
+                    tag_counts[tag] += 1 
             small_part_posts.append(_post)
             #small_part_posts.append(Post.from_xml(post))
         [ret_posts.append(small_part_posts[i]) for i in range(len(small_part_posts))]
@@ -211,8 +214,11 @@ class rule34Py(Exception):
                 for post in myposts2:
                     _post = Post.from_xml(post)
                     post_tags = _post.tags
+                    #print(post_tags)
                     for tag in post_tags:
-                        tag_counts[tag] += 1
+                        #print(tag)
+                        if not tag == '':
+                            tag_counts[tag] += 1 
                     small_part_posts.append(_post)#(Post.from_xml(post))
                 print('вторая проверка small_part_posts',len(small_part_posts))
                 #if not len(posts_inside_while) == 0:
