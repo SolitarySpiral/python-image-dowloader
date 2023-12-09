@@ -27,9 +27,10 @@ def get_multi(from_r34: bool):
         #4
         positive_tags = ['egg_implantation ']
         extra_tags = ['oviposition', 'ovipositor', 'tentacle_ovipositor',
-                    'vaginal_oviposition', 'oral_oviposition', 'anal_oviposition', 'urethral_oviposition', 'nipple_oviposition',
-                    'vaginal_egg_implantation', 'oral_egg_implantation', 'anal_egg_implantation', 'urethral_egg_implantation', 'nipple_egg_implantation',
-                    'egg_bulge', 'eggnant', 'egg_inflation']
+                    'vaginal_oviposition', 'oral_oviposition', 'anal_oviposition', 'urethral_oviposition', 'nipple_oviposition', 'bladder_oviposition',
+                    'vaginal_egg_implantation', 'oral_egg_implantation', 'anal_egg_implantation', 'urethral_egg_implantation', 'nipple_egg_implantation', 'bladder_egg_implantation',
+                    'anal_egg_laying',
+                    'egg_bulge', 'eggnant', 'egg_inflation', 'egg_transfer']
         negative_tags = []
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
@@ -37,6 +38,14 @@ def get_multi(from_r34: bool):
         #5
         positive_tags = ['murahachiro']
         extra_tags = []
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #6
+        positive_tags = ['enema']
+        extra_tags = ['enema_buttplug', 'catheter_in_urethra', 'urine_inflation', 'urine_enema'
+                      'bladder_inflation','bladder_bulge']
         negative_tags = []
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
@@ -301,7 +310,7 @@ def get_multi(from_r34: bool):
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
         small_multilist = []
-        #35
+        #35 62к
         positive_tags = ['蟲姦']
         extra_tags = ['苗床', '寄生', '産卵', '寄生乗っ取り', '海生物姦']
         negative_tags = []

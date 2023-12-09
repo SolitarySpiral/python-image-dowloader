@@ -87,20 +87,28 @@ async def async_r34_download_file(session, url, file_name):
         'Referer': 'https://wimg.rule34.xxx/',
         'Upgrade-Insecure-Requests': '1'
     }
-    file_name = re.sub('[/:+#%]', '', file_name)
-    if os.path.exists(file_name):
-        print('File already exists', file_name)
-    else:
-        print('File not exists', file_name)
-        #async with aiohttp.ClientSession(keepalive=True) as session:
-        async with session.get(url, headers=headers) as r:
-            async with aiofiles.open(file_name, 'wb') as f:
-                while True:
-                    chunk = await r.content.read(1024)
-                    if not chunk:
-                        break
-                    await f.write(chunk)
-        print('File downloaded', file_name)
+    try:
+        file_name = re.sub('[/:+#%]', '', file_name)
+        if os.path.exists(file_name):
+            print('File already exists', file_name)
+        else:
+            print('File not exists', file_name)
+            #async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=200)) as session: #connector=aiohttp.TCPConnector(keepalive_timeout=3)
+            async with session.get(url, headers=headers) as r:
+                assert r.status == 200
+                #with open(file_name, 'wb') as f:
+                async with aiofiles.open(file_name, 'wb') as f:
+                    #await shutil.copyfileobj(r.raw, f)
+                    while True:
+                        chunk = await r.content.readany()
+                        if not chunk:
+                            break
+                        await f.write(chunk)
+            print('File downloaded', file_name)
+    except aiohttp.ClientError as e:
+        return e
+    except Exception as ex:
+        return ex
 
 def _get_post_urls(tags: list[str]) -> list[str]:
     """Retrieve the links to all of the posts that contain the tags.
