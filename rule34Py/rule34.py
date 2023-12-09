@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-#import sys 
+from helpers import tag_counts
 import time
 import requests
 import random
@@ -186,19 +186,19 @@ class rule34Py(Exception):
             return ret_posts
         
         soup = BeautifulSoup (response.content, 'xml')
-        #print(soup)
-        #[tag.name for tag in soup.find_all()]
+
         myposts = soup.find_all("post")#[soup.post]
-        #print(myposts)
         for post in myposts:
-            #print(post)
-            small_part_posts.append(Post.from_xml(post))
-        #for post in response.json():
-            #print(post)
-        #    small_part_posts.append(Post.from_json(post))
-        #print('внутри search после get first 1k')
+            _post = Post.from_xml(post)
+            post_tags = _post.tags
+            #print(post_tags)
+            for tag in post_tags:
+                #print(tag)
+                if not tag == '':
+                    tag_counts[tag] += 1 
+            small_part_posts.append(_post)
+            #small_part_posts.append(Post.from_xml(post))
         [ret_posts.append(small_part_posts[i]) for i in range(len(small_part_posts))]
-        #time.sleep(30)
         
         while len(small_part_posts) == 100:
             print('получили small_part_posts', len(small_part_posts))
@@ -212,7 +212,14 @@ class rule34Py(Exception):
                 soup2 = BeautifulSoup (response2.content, 'xml')
                 myposts2 = soup2.find_all("post")
                 for post in myposts2:
-                    small_part_posts.append(Post.from_xml(post))
+                    _post = Post.from_xml(post)
+                    post_tags = _post.tags
+                    #print(post_tags)
+                    for tag in post_tags:
+                        #print(tag)
+                        if not tag == '':
+                            tag_counts[tag] += 1 
+                    small_part_posts.append(_post)#(Post.from_xml(post))
                 print('вторая проверка small_part_posts',len(small_part_posts))
                 #if not len(posts_inside_while) == 0:
                 #    [small_part_posts.append(posts_inside_while[i]) for i in range(len(posts_inside_while))]

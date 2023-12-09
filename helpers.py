@@ -7,16 +7,48 @@ If this package grows more complex, the functionality can be divided in a more m
 the simplicity of the current API, there isn't really a point right now.
 
 """
-
-import re
+import json
+import re, os
 from typing import ForwardRef
-
+from collections import defaultdict
 from exceptions import InvalidTagFormat, InvalidUrlFormat
 
 
 # Prevent circular dependency issues
 MediaMetaData = ForwardRef("MediaMetaData")
+# defaultdic используется для подсчета тегов суммарно по всем постам конкретной группы. Следующие 3 функции используются в одной связке.
+tag_counts = defaultdict(int)
 
+# загружает словарь, если он уже существует
+def load_dictionary(file_path):
+    print('грузим словарь')
+    try:
+        with open(file_path, 'r', encoding="utf-8") as file:
+            dictionary = json.load(file)
+        print('загрузили словарь')
+    except Exception as e:
+        print('Получена ошибка загрузки словаря:', e)
+    finally:
+        os.remove(file_path)
+        dictionary = {}
+        print('удалили словарь')
+    return dictionary
+
+# сохраняет словарь 
+def save_dictionary(dictionary, file_path):
+    with open(file_path, 'w', encoding="utf-8") as file:
+        json.dump(dictionary, file)
+    print('сохранили словарь')
+
+# производит слияние существующего словаря и список тегов из дозагрузки
+def merge_dictionaries(dictionary1, dictionary2):
+    merged_dictionary = dictionary1.copy()
+    for key, value in dictionary2.items():
+        if key in merged_dictionary:
+            merged_dictionary[key] += value
+        else:
+            merged_dictionary[key] = value
+    return merged_dictionary
 
 def sanitize_tag(tag: str) -> str:
     """Remove and replace any invalid characters in the tag.

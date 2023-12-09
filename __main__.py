@@ -2,22 +2,25 @@ import os, re
 from datetime import datetime
 from pathlib import Path
 import asyncio
+import aiohttp
+from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 from rule34Py import rule34Py
 from rule34Py.__vars__ import __headers__
-from helpers import save_ids_to_file, remove_duplicates
-import multi
+from helpers import save_ids_to_file, remove_duplicates, tag_counts, load_dictionary, save_dictionary, merge_dictionaries
+import multi, api
 r34Py = rule34Py()
 semaphoreNozomi = asyncio.Semaphore(20) #Not recommends change it
 semaphore34 = asyncio.Semaphore(10) #Not recommends change it
-import api
 
-async def download_async(post_url, path, internal_neg, relevant_date):
+
+
+async def download_async(sess, post_url, path, internal_neg, relevant_date):
         async with semaphoreNozomi:
-            await api.async_nozomi_download_file(post_url, path, internal_neg, relevant_date)
+            await api.async_nozomi_download_file(sess, post_url, path, internal_neg, relevant_date)
 
-async def r34_download_async(url, file_name):
+async def r34_download_async(sess, url, file_name):
         async with semaphore34:
-            await api.async_r34_download_file(url, file_name)
+            await api.async_r34_download_file(sess, url, file_name)
 
 async def runner():
     '''You should always have the following variables filled in in one instance for 1 upload
@@ -37,6 +40,7 @@ async def runner():
     #---- declaration variants
     filename = '!ids.txt'
     r_filename = '!fnames.txt'
+    tags_filename = '!tags_counts.txt'
     small_multilist = []
     full_multilist = []
     from_r34 = True #False#True
@@ -48,19 +52,19 @@ async def runner():
     positive_tags = []
     # ----
     #---r34 tags
-    #positive_tags = ['nopanani']
+    positive_tags = ['nopanani']
     #positive_tags = ['jashinn']
     #positive_tags = ['kgovipositors']
     
-    positive_tags = ['egg_implantation ']
-    extra_tags = ['oviposition', 'ovipositor', 'tentacle_ovipositor',
-                  'vaginal_oviposition', 'oral_oviposition', 'anal_oviposition', 'urethral_oviposition', 'nipple_oviposition',
-                  'vaginal_egg_implantation', 'oral_egg_implantation', 'anal_egg_implantation', 'urethral_egg_implantation', 'nipple_egg_implantation',
-                  'egg_bulge', 'eggnant', 'egg_inflation']
+    #positive_tags = ['egg_implantation ']
+    #extra_tags = ['oviposition', 'ovipositor', 'tentacle_ovipositor',
+    #              'vaginal_oviposition', 'oral_oviposition', 'anal_oviposition', 'urethral_oviposition', 'nipple_oviposition',
+    #              'vaginal_egg_implantation', 'oral_egg_implantation', 'anal_egg_implantation', 'urethral_egg_implantation', 'nipple_egg_implantation',
+    #              'egg_bulge', 'eggnant', 'egg_inflation']
     #---nozomi tags
     #positive_tags = ['sabamen']
-    #positive_tags = ['uzumaki_himawari']
-    #extra_tags = ['うずまきヒマワリ']
+    #positive_tags = ['artist:ねこみかーる']
+    #extra_tags = ['pixiv_id_1522712']
     '''
     #----FOR SINGLE DOWNLOADING (USE ONLY SINGLE OR MULTI AT ONCE)
     #Unlock the lines below to load the individual tags above
@@ -74,7 +78,7 @@ async def runner():
     the tags are inside multi.py
     '''
     from_r34 = False
-    with_date = False
+    #with_date = False
 
     full_multilist = multi.get_multi(from_r34)
     #or
@@ -91,6 +95,9 @@ async def runner():
                     internal_pos, internal_ext, internal_neg, relevant_date = full_multilist[i]
                 else:    
                     internal_pos, internal_ext, internal_neg = full_multilist[i]
+                #очистка списка тегов перед началось проверок и загрузок
+                tag_counts.clear()
+                merged_dictionary = sorted_dict = dictionary1 = {}
 
                 url_list = api.get_urls_list(internal_pos, internal_ext)#(positive_tags, extra_tags)
                 url_list = list(url_list)
@@ -102,15 +109,35 @@ async def runner():
                     if not os.path.exists(save_dir + folder_tag):
                         os.makedirs(save_dir + folder_tag)
                     os.chdir(save_dir + folder_tag)
-                    print("Текущая директория изменилась на ", os.getcwd())                   
+                    print("Текущая директория изменилась на ", os.getcwd())
+                    # загрузка файлов                   
                     if not os.path.exists(filename):
                         print('ids File not exists:', filename)
-                        tasks= []
-                        for post_url in url_list:
-                            tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
-                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=None)) as session: #!connector aiohttp.TCPConnector() boosted
+                            tasks= []
+                            for post_url in url_list:
+                                tasks.append(asyncio.create_task(download_async(session, post_url, Path.cwd(), internal_neg, relevant_date)))
+                            await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        
+                        '''threads= []
+                        with ThreadPoolExecutor(max_workers=20) as executor:
+                            for post_url in url_list:
+                                threads.append(executor.submit(api.download_file, post_url, Path.cwd(), internal_neg, relevant_date))'''
+                        
+                        '''Processes = []
+                        with ProcessPoolExecutor(max_workers=16) as p_executor:
+                            for post_url in url_list:
+                                Processes.append(p_executor.submit(api.download_file, post_url, Path.cwd(), internal_neg, relevant_date))
+                        p_executor.shutdown'''
+
                         save_ids_to_file(url_list, filename) # Сохранение списка id в файл
                         print(f'File {filename} saved with {len(url_list)} ids')
+                        # сохранение тегов
+                        sorted_dict = {k: tag_counts[k] for k in sorted(tag_counts)}
+                        with open(tags_filename, "w", encoding="utf-8") as file:
+                            for tag, count in sorted_dict.items():
+                                file.write(f"{tag}: {count}\n")
+                        print(f'File {tags_filename} saved with {len(sorted_dict)} new tags')
                     else:
                         # Чтение id из файла
                         with open(filename, 'r') as file:
@@ -119,15 +146,24 @@ async def runner():
                         print(f'File exists: {filename} with {len(list1_from_file)} ids')
                         # Получение уникальных id из второго списка, отсутствующих в первом списке
                         list2_unique = remove_duplicates(list1_from_file, url_list)
-                        tasks= []
-                        for post_url in list2_unique:
-                            tasks.append(asyncio.create_task(download_async(post_url, Path.cwd(), internal_neg, relevant_date)))
-                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=None)) as session: #!connector aiohttp.TCPConnector() boosted
+                            tasks= []
+                            for post_url in list2_unique:
+                                tasks.append(asyncio.create_task(download_async(session, post_url, Path.cwd(), internal_neg, relevant_date)))
+                            await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+
+
                         # Дописывание оставшихся id в файл
                         with open(filename, 'a') as file:
                             for id in list2_unique:
                                 file.write(str(id) + '\n')
                         print(f'File {filename} saved with {len(list2_unique)} new ids')
+                        # сохранение тегов
+                        sorted_dict = {k: tag_counts[k] for k in sorted(tag_counts)}
+                        with open(tags_filename, "w", encoding="utf-8") as file:
+                            for tag, count in sorted_dict.items():
+                                file.write(f"{tag}: {count}\n")
+                        print(f'File {tags_filename} saved with {len(sorted_dict)} new tags')
     else:
         '''FOR RULE34.xxx'''
         if not full_multilist == []:
@@ -138,7 +174,9 @@ async def runner():
                     internal_pos, internal_ext, internal_neg, relevant_date = full_multilist[i]
                 else:    
                     internal_pos, internal_ext, internal_neg = full_multilist[i]
-
+                #очистка списка тегов перед началось проверок и загрузок
+                tag_counts.clear()
+                merged_dictionary = sorted_dict = dictionary1 = {}
                 urls, filenames = api.r34_urls_files_list(internal_pos, internal_ext, internal_neg, relevant_date)
                 urls = list(urls)
                 filenames = list(filenames)
@@ -149,19 +187,48 @@ async def runner():
                     os.makedirs(save_dir + folder_tag)
                 os.chdir(save_dir + folder_tag)
                 print("Текущая директория изменилась на ", os.getcwd())
+                # загрузка файлов
                 if not os.path.exists(filename) and not os.path.exists(r_filename):
                     print('urls File not exists:', filename)
                     print('filenames File not exists:', r_filename)
-                    tasks= []
-                    for i in range(len(urls)):
-                        tasks.append(asyncio.create_task(r34_download_async(urls[i], filenames[i])))
-                    await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+
+                    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session: #!connector aiohttp.TCPConnector() boosted
+                        tasks= []
+                        for i in range(len(urls)):
+                            tasks.append(asyncio.create_task(r34_download_async(session, urls[i], filenames[i])))
+                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач'''
+
+                    '''threads= []
+                    with ThreadPoolExecutor(max_workers=20) as executor:
+                        for i in range(len(urls)):
+                                threads.append(executor.submit(api.r34_download, urls[i], filenames[i]))'''
+                    
                     save_ids_to_file(urls, filename) # Сохранение списка url в файл
                     print(f'File {filename} saved with {len(urls)} ids')
                     save_ids_to_file(filenames, r_filename) # Сохранение списка filenames в файл
                     print(f'File {r_filename} saved with {len(filenames)} ids')
+                    # сохранение тегов
+                    if os.path.exists(tags_filename):
+                            print('tags File exists:', tags_filename)
+                            # Загрузка первого словаря из файла
+                            dictionary1 = load_dictionary(tags_filename)
+                            # Слияние словарей
+                            merged_dictionary = merge_dictionaries(dictionary1, tag_counts)
+                            sorted_dict = {k: merged_dictionary[k] for k in sorted(merged_dictionary)}
+                            # Сохранение словаря в файл
+                            save_dictionary(merged_dictionary, tags_filename)
+                            print(f'File {tags_filename} saved with {len(merged_dictionary)} tags')
+                    else:
+                        print('tags File not exists:', tags_filename)
+                        sorted_dict = {k: tag_counts[k] for k in sorted(tag_counts)}
+                        # создание нового, если не существует
+                        with open(tags_filename, "w", encoding="UTF-8") as file:
+                            for tag, count in sorted_dict.items():
+                                file.write(f"{tag}: {count}\n")
+                        print(f'File {tags_filename} saved with {len(sorted_dict)} new tags')
                 else:
                     try:
+                    # загрузка файлов
                         # Чтение id из файла
                         with open(filename, 'r') as file:
                             lines = file.read().splitlines()
@@ -173,13 +240,22 @@ async def runner():
                         with open(r_filename, 'r') as file:
                             lines = file.read().splitlines()
                             list1_from_file = [str(line) for line in lines]
-                        print(f'File exists: {r_filename} with {len(list1_from_file)} ids')
+                        print(f'File exists: {r_filename} with {len(list1_from_file)} filenames')
                         # Получение уникальных id из второго списка, отсутствующих в первом списке
-                        filenames_unique = remove_duplicates(list1_from_file, filenames)
-                        tasks= []
-                        for i in range(len(urls_unique)):
-                            tasks.append(asyncio.create_task(r34_download_async(urls_unique[i], filenames_unique[i])))
-                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
+                        filenames_unique = remove_duplicates(list1_from_file, filenames) 
+
+                        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session: #!connector aiohttp.TCPConnector() boosted
+                            tasks= []
+                            for i in range(len(urls_unique)):
+                                tasks.append(asyncio.create_task(r34_download_async(session, urls[i], filenames[i])))
+                            await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач'''
+
+                        '''threads= []
+                        with ThreadPoolExecutor(max_workers=20) as executor:
+                            for i in range(len(urls_unique)):
+                                threads.append(executor.submit(api.r34_download, urls_unique[i], filenames_unique[i]))'''
+
+                    #cохранение файлов
                         # Дописывание оставшихся id в файл
                         with open(filename, 'a') as file:
                             for id in urls_unique:
@@ -188,27 +264,28 @@ async def runner():
                         with open(r_filename, 'a') as file:
                             for id in filenames_unique:
                                 file.write(str(id) + '\n')
-                        print(f'File {r_filename} saved with {len(filenames_unique)} new ids')
+                        print(f'File {r_filename} saved with {len(filenames_unique)} new filenames')
+                    # сохранение тегов
+                        if os.path.exists(tags_filename):
+                            # Загрузка первого словаря из файла
+                            dictionary1 = load_dictionary(tags_filename)
+                            # Слияние словарей
+                            merged_dictionary = merge_dictionaries(dictionary1, tag_counts)
+                            sorted_dict = {k: merged_dictionary[k] for k in sorted(merged_dictionary)}
+                            # Сохранение словаря в файл
+                            save_dictionary(merged_dictionary, tags_filename)
+                            print(f'File {tags_filename} saved with {len(merged_dictionary)} tags')
+                        else:
+                            sorted_dict = {k: tag_counts[k] for k in sorted(tag_counts)}
+                            # создание нового, если не существует
+                            with open(tags_filename, "w", encoding="UTF-8") as file:
+                                for tag, count in sorted_dict.items():
+                                    file.write(f"{tag}: {count}\n")
+                            print(f'File {tags_filename} saved with {len(sorted_dict)} new tags')
+
                     except FileNotFoundError:
                         print('the file of urls or filenames doesnt exist. You should delete another file and retry')
                         exit()
-
-                #tasks= []
-                #for i in range(len(urls)):
-                #    tasks.append(asyncio.create_task(r34_download_async(urls[i], filenames[i])))
-                #await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач
-                #threads= []
-                #with ThreadPoolExecutor(max_workers=workers) as executor:
-                #    for i in range(len(urls)):#for result in search:
-                #        try:
-                #            if not (filenames[i] == '' and urls[i] == ''):
-                #                threads.append(executor.submit(api.r34_download, urls[i], filenames[i]))
-                #        except Exception as ex:
-                #            print(ex)
-                #            pass
-                #        
-                #    for task in as_completed(threads):
-                #        pass
 
 
 if __name__ == '__main__':
