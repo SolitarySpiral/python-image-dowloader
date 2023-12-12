@@ -324,6 +324,13 @@ def get_multi(from_r34: bool):
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
         small_multilist = []
+        #36
+        positive_tags = ['artist:Nefas']
+        extra_tags = ['pixiv_id_9800742', 'nefas']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
         
     return full_multilist
 

@@ -53,8 +53,9 @@ async def async_nozomi_download_file(session, url: str, filepath: Path, blacklis
                             tag_counts[tag] += 1 
                     #print(tag_counts.items())
                     if not len(set(current_post_tag_list).intersection(blacklist)) > 0:
+                        nozomi_img_counter = 1
                         for media_meta_data in current_post.imageurls:
-                            filename = f'{current_post.date}{media_meta_data.dataid}.{media_meta_data.type}'
+                            filename = f'{current_post.date}-{nozomi_img_counter}-{media_meta_data.dataid}.{media_meta_data.type}'
                             filename = re.sub('[<>/:#%]', '', filename)
                             image_filepath = filepath.joinpath(filename)
                             if os.path.exists(image_filepath):
@@ -69,6 +70,7 @@ async def async_nozomi_download_file(session, url: str, filepath: Path, blacklis
                                                 break
                                             await f.write(chunk)
                                 print('File downloaded', image_filepath)
+                                nozomi_img_counter += 1
                     else:
                         print('Post in blacklist', current_post.postid)
                     
