@@ -18,8 +18,9 @@ from rule34Py import rule34Py
 from rule34Py.__vars__ import __headers__
 r34Py = rule34Py()
 #end main imported
+#semaphoreNozomiFile = asyncio.Semaphore(16)
 
-async def async_nozomi_download_file(session, url: str, filepath: Path, blacklist: list[str], relevant_post_date = None):
+async def async_nozomi_download_file(session, semaphoreNozomi, url: str, blacklist: list[str], relevant_post_date = None):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -28,15 +29,17 @@ async def async_nozomi_download_file(session, url: str, filepath: Path, blacklis
         'Referer': 'https://nozomi.la/',
         'Upgrade-Insecure-Requests': '1'
     }
+    filepath = Path.cwd()
     if relevant_post_date is None:
         relevant_post_date = datetime.strptime("1900-01-01", '%Y-%m-%d')
     filepath.mkdir(parents=True, exist_ok=True)
     try:
-        #async with aiohttp.ClientSession(keepalive=True) as session:
+        #async with semaphoreNozomi:
             async with session.get(url) as response:
                 post_data = await response.json()
                 current_post = from_dict(data_class=Post, data=post_data)
                 post_date = datetime.strptime(current_post.date, '%Y-%m-%d %H:%M:%S-%f')
+                norm_post_date = datetime.strftime(post_date, '%Y-%m-%d %H%M%S')
                 if post_date > relevant_post_date:
                     current_post_tag_list = []
                     for i in range(len(current_post.artist)):
@@ -54,23 +57,29 @@ async def async_nozomi_download_file(session, url: str, filepath: Path, blacklis
                     #print(tag_counts.items())
                     if not len(set(current_post_tag_list).intersection(blacklist)) > 0:
                         nozomi_img_counter = 1
+                        img_tasks = []
                         for media_meta_data in current_post.imageurls:
-                            filename = f'{current_post.date}-{nozomi_img_counter}-{media_meta_data.dataid}.{media_meta_data.type}'
+                            filename = f'{norm_post_date}-{nozomi_img_counter}-{media_meta_data.dataid}.{media_meta_data.type}'
                             filename = re.sub('[<>/:#%]', '', filename)
                             image_filepath = filepath.joinpath(filename)
                             if os.path.exists(image_filepath):
-                                print('File already exists', image_filepath)
-                            else:
-                                print('File not exists', image_filepath)
-                                async with session.get(media_meta_data.imageurl, headers=headers) as r:
-                                    async with aiofiles.open(image_filepath, 'wb') as f:
-                                        while True:
-                                            chunk = await r.content.read(1024)
-                                            if not chunk:
-                                                break
-                                            await f.write(chunk)
-                                print('File downloaded', image_filepath)
+                                print('File already exist', image_filepath)
                                 nozomi_img_counter += 1
+                            else:
+                                #print('File not exists', image_filepath)
+                                #img_tasks.append(asyncio.create_task(nozomi_file_saver(session, semaphoreNozomi, media_meta_data.imageurl, image_filepath)))
+                                async with semaphoreNozomi:
+                                    async with session.get(media_meta_data.imageurl, headers=headers) as r:
+                                        async with aiofiles.open(image_filepath, 'wb') as f:
+                                            while True:
+                                                chunk = await r.content.read(4048)
+                                                if not chunk:
+                                                    break
+                                                await f.write(chunk)
+                                
+                                print('File is downloaded', image_filepath)
+                                nozomi_img_counter += 1
+                        await asyncio.gather(*img_tasks)
                     else:
                         print('Post in blacklist', current_post.postid)
                     
@@ -78,8 +87,27 @@ async def async_nozomi_download_file(session, url: str, filepath: Path, blacklis
         return e
     except Exception as ex:
         return ex
+    
+'''async def nozomi_file_saver(session, semaphoreNozomi, url, image_filepath):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Referer': 'https://nozomi.la/',
+        'Upgrade-Insecure-Requests': '1'
+    }
+    async with semaphoreNozomiFile:
+        async with session.get(url, headers=headers) as r:
+            async with aiofiles.open(image_filepath, 'wb') as f:
+                while True:
+                    chunk = await r.content.read(4096)
+                    if not chunk:
+                        break
+                    await f.write(chunk)
+            print('File downloaded', image_filepath)'''
 
-async def async_r34_download_file(session, url, file_name):
+async def async_r34_download_file(session, semaphore34, url, file_name):
     #res = requests.get(url, stream = True)
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0',
@@ -92,21 +120,21 @@ async def async_r34_download_file(session, url, file_name):
     try:
         file_name = re.sub('[/:+#%]', '', file_name)
         if os.path.exists(file_name):
-            print('File already exists', file_name)
+            print('File already exist', file_name)
         else:
-            print('File not exists', file_name)
-            #async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=200)) as session: #connector=aiohttp.TCPConnector(keepalive_timeout=3)
-            async with session.get(url, headers=headers) as r:
-                assert r.status == 200
-                #with open(file_name, 'wb') as f:
-                async with aiofiles.open(file_name, 'wb') as f:
-                    #await shutil.copyfileobj(r.raw, f)
-                    while True:
-                        chunk = await r.content.readany()
-                        if not chunk:
-                            break
-                        await f.write(chunk)
-            print('File downloaded', file_name)
+            #print('File not exists', file_name)
+            async with semaphore34:
+                async with session.get(url, headers=headers) as r:
+                    assert r.status == 200
+                    #with open(file_name, 'wb') as f:
+                    async with aiofiles.open(file_name, 'wb') as f:
+                        #await shutil.copyfileobj(r.raw, f)
+                        while True:
+                            chunk = await r.content.read(4048)
+                            if not chunk:
+                                break
+                            await f.write(chunk)
+            print('File is downloaded', file_name)
     except aiohttp.ClientError as e:
         return e
     except Exception as ex:
@@ -353,7 +381,6 @@ def download_file(url: str, filepath: Path, blacklist: list[str], relevant_post_
     try:
         post_data = requests.get(url).json()
         current_post = from_dict(data_class=Post, data=post_data)
-        #print(current_post.date, relevant_post_date)
         post_date = datetime.strptime(current_post.date, '%Y-%m-%d %H:%M:%S-%f')
         if post_date > relevant_post_date:
             current_post_tag_list = []
@@ -365,21 +392,26 @@ def download_file(url: str, filepath: Path, blacklist: list[str], relevant_post_
                 current_post_tag_list.append(current_post.copyright[i].tag)
             for i in range(len(current_post.general)):
                 current_post_tag_list.append(current_post.general[i].tag)
-            #print(current_post_tag_list)
-            #print(current_post.artist, current_post.character, current_post.copyright, current_post.general)
+            
+            for tag in current_post_tag_list:
+                if not tag == '':
+                    tag_counts[tag] += 1 
             if not len(set(current_post_tag_list).intersection(blacklist)) > 0:
+                nozomi_img_counter = 1
                 for media_meta_data in current_post.imageurls:
-                    filename = f'{current_post.date}{media_meta_data.dataid}.{media_meta_data.type}'
+                    filename = f'{current_post.date}-{nozomi_img_counter}-{media_meta_data.dataid}.{media_meta_data.type}'
                     filename = re.sub('[<>/:#%]', '', filename)
                     image_filepath = filepath.joinpath(filename)
                     if os.path.exists(image_filepath):
                         print('File already exists', image_filepath)
                     else:
                         print('File not exists', image_filepath)
+                        #with requests.session(keepalive=True) as sess:
                         with requests.get(media_meta_data.imageurl, stream=True, headers=headers) as r:
                             with open(image_filepath, 'wb') as f: #async with aiofiles.open(image_filepath, 'wb') as f:
                                 shutil.copyfileobj(r.raw, f)
                         print('File downloaded', image_filepath)
+                        nozomi_img_counter += 1
             else:
                 print('Post in black list',current_post.postid)
     except requests.exceptions.RequestException as e:

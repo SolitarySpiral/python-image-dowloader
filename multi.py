@@ -324,13 +324,49 @@ def get_multi(from_r34: bool):
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
         small_multilist = []
-        #36
+        #37
         positive_tags = ['artist:Nefas']
         extra_tags = ['pixiv_id_9800742', 'nefas']
         negative_tags = []
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
         small_multilist = []
+        #38
+        positive_tags = ['artist:FIZ-ROT']
+        extra_tags = ['pixiv_id_42420879']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #39
+        positive_tags = ['artist:ねこみかーる']
+        extra_tags = ['pixiv_id_1522712']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #40
+        positive_tags = ['artist:BORN-TO-DIE']
+        extra_tags = ['born-to-die', 'pixiv_id_1920354']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #41
+        positive_tags = ['artist:Garabatoz']
+        extra_tags = ['pixiv_id_1993942']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #42
+        positive_tags = ['lolicon']
+        extra_tags = ['Toddler', 'toddlercon', '赤ちゃん', 'ペド']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+
         
     return full_multilist
 
