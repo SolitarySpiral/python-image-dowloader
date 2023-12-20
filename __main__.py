@@ -74,7 +74,7 @@ async def runner():
 
     the tags are inside multi.py
     '''
-    from_r34 = False
+    #from_r34 = False
     #with_date = False
 
     full_multilist = multi.get_multi(from_r34)
@@ -212,7 +212,7 @@ async def runner():
                         print('tags File not exists:', tags_filename)
                         sorted_dict = {k: tag_counts[k] for k in sorted(tag_counts)}
                         # создание нового, если не существует
-                        with open(tags_filename, "w", encoding="UTF-8") as file:
+                        with open(tags_filename, "w", encoding="utf-8") as file:
                             for tag, count in sorted_dict.items():
                                 file.write(f"{tag}: {count}\n")
                         print(f'File {tags_filename} saved with {len(sorted_dict)} new tags')
@@ -269,7 +269,7 @@ async def runner():
                         else:
                             sorted_dict = {k: tag_counts[k] for k in sorted(tag_counts)}
                             # создание нового, если не существует
-                            with open(tags_filename, "w", encoding="UTF-8") as file:
+                            with open(tags_filename, "w", encoding="utf-8") as file:
                                 for tag, count in sorted_dict.items():
                                     file.write(f"{tag}: {count}\n")
                             print(f'File {tags_filename} saved with {len(sorted_dict)} new tags')

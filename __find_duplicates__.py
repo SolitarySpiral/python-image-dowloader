@@ -3,7 +3,7 @@ import os
 from concurrent.futures import ProcessPoolExecutor
 
 def similar(a, b):
-    return SequenceMatcher(None, a, b).quick_ratio()# используем quick_ratio, оно быстрее чем просто ratio, но чуть менее точная
+    return SequenceMatcher(None, a, b).ratio()# используем quick_ratio, оно быстрее чем просто ratio, но чуть менее точная, слишком неточная
 
 def deleter(files):
     '''сравниваем каждый элемент из списка файлов с другим, если есть точнось 0.9'''

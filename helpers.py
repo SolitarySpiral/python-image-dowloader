@@ -21,24 +21,23 @@ tag_counts = defaultdict(int)
 
 # загружает словарь, если он уже существует
 def load_dictionary(file_path):
-    print('грузим словарь')
     try:
         with open(file_path, 'r', encoding="utf-8") as file:
             dictionary = json.load(file)
-        print('загрузили словарь')
     except Exception as e:
         print('Получена ошибка загрузки словаря:', e)
     finally:
         os.remove(file_path)
         dictionary = {}
-        print('удалили словарь')
+        print('удалили словарь', file_path)
     return dictionary
 
 # сохраняет словарь 
 def save_dictionary(dictionary, file_path):
     with open(file_path, 'w', encoding="utf-8") as file:
-        json.dump(dictionary, file)
-    print('сохранили словарь')
+        for tag, count in dictionary.items():
+            file.write(f"{tag}: {count}\n")
+        #json.dump(dictionary, file)
 
 # производит слияние существующего словаря и список тегов из дозагрузки
 def merge_dictionaries(dictionary1, dictionary2):

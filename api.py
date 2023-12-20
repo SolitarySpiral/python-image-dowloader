@@ -256,16 +256,17 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, 
             #print('search_pos =',search_pos)
             for result in search_pos:
                 post_date = result.date
+                norm_post_date = datetime.strftime(result.date, '%Y-%m-%d %H%M%S')
                 #print(post_date, relevant_post_date)
                 if post_date > relevant_post_date:
                     if not result.video == '':
                         c.append(result.fileurl)
-                        c.append(f'{result.date}-{result.id}-{result.video}')
+                        c.append(f'{norm_post_date}-{result.id}-{result.video}')
                         d.append(c)
                         c = []
                     else:
                         c.append(result.fileurl)
-                        c.append(f'{result.date}-{result.id}-{result.image}')
+                        c.append(f'{norm_post_date}-{result.id}-{result.image}')
                         d.append(c)
                         c = []
                 '''
@@ -298,28 +299,30 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, 
                     search_ext.append(post)
             for result in search_pos:
                 post_date = result.date
+                norm_post_date = datetime.strftime(result.date, '%Y-%m-%d %H%M%S')
                 if post_date > relevant_post_date:
                     if not result.video == '':
                         c.append(result.fileurl)
-                        c.append(f'{result.date}-{result.id}-{result.video}')
+                        c.append(f'{norm_post_date}-{result.id}-{result.video}')
                         d.append(c)
                         c = []
                     else:
                         c.append(result.fileurl)
-                        c.append(f'{result.date}-{result.id}-{result.image}')
+                        c.append(f'{norm_post_date}-{result.id}-{result.image}')
                         d.append(c)
                         c = []
             for result in search_ext:
                 post_date = result.date
+                norm_post_date = datetime.strftime(result.date, '%Y-%m-%d %H%M%S')
                 if post_date > relevant_post_date:
                     if not result.video == '':
                         c.append(result.fileurl)
-                        c.append(f'{result.date}-{result.id}-{result.video}')
+                        c.append(f'{norm_post_date}-{result.id}-{result.video}')
                         e.append(c)
                         c = []
                     else:
                         c.append(result.fileurl)
-                        c.append(f'{result.date}-{result.id}-{result.image}')
+                        c.append(f'{norm_post_date}-{result.id}-{result.image}')
                         e.append(c)
                         c = []
         extra_nointersection = []
