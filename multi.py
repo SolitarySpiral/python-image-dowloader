@@ -366,6 +366,20 @@ def get_multi(from_r34: bool):
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
         small_multilist = []
+        #43
+        positive_tags = ['mika-shi']
+        extra_tags = []
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
+        #44
+        positive_tags = ['artist:とまぎり']
+        extra_tags = ['pixiv_id_81077804']
+        negative_tags = []
+        small_multilist.extend((positive_tags, extra_tags, negative_tags))
+        full_multilist.append(small_multilist)
+        small_multilist = []
 
         
     return full_multilist
