@@ -3,7 +3,7 @@ charset-normalizer==3.3.2
 dacite==1.8.1
 idna==3.6
 requests==2.31.0
-urllib3==2.1.0
+urllib3==2.2.0
 aiohttp==3.9.1
 asyncio==3.4.3
 bs4==1.0.0
