@@ -75,9 +75,9 @@ class Post(MediaMetaData):
         imageurls (List[MediaMetaData]): The media featured in the post.
 
     """
-
-    date:       str
     postid:     int
+    date:       Optional [str] #= field(default_factory='1990-01-01 00:00:00-00')
+    
     general:    List[Tag] = field(default_factory=list)
     copyright:  List[Tag] = field(default_factory=list)
     character:  List[Tag] = field(default_factory=list)
