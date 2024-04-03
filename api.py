@@ -1,5 +1,7 @@
 """Web API functions."""
+import logging
 import struct
+import time
 from helpers import sanitize_tag, create_tag_filepath, create_post_filepath
 from itertools import chain
 import aiohttp
@@ -62,6 +64,7 @@ async def async_nozomi_download_file(session, semaphoreNozomi, url: str, blackli
                             filename = f'{norm_post_date}-{nozomi_img_counter}-{media_meta_data.dataid}.{media_meta_data.type}'
                             filename = re.sub('[<>/:#%]', '', filename)
                             image_filepath = filepath.joinpath(filename)
+                            print(media_meta_data.imageurl, image_filepath)
                             if os.path.exists(image_filepath):
                                 print('File already exist', image_filepath)
                                 nozomi_img_counter += 1
@@ -72,7 +75,7 @@ async def async_nozomi_download_file(session, semaphoreNozomi, url: str, blackli
                                     async with session.get(media_meta_data.imageurl, headers=headers) as r:
                                         async with aiofiles.open(image_filepath, 'wb') as f:
                                             while True:
-                                                chunk = await r.content.read(4048)
+                                                chunk = await r.content.read()
                                                 if not chunk:
                                                     break
                                                 await f.write(chunk)
@@ -130,7 +133,7 @@ async def async_r34_download_file(session, semaphore34, url, file_name):
                     async with aiofiles.open(file_name, 'wb') as f:
                         #await shutil.copyfileobj(r.raw, f)
                         while True:
-                            chunk = await r.content.read(4048)
+                            chunk = await r.content.read()
                             if not chunk:
                                 break
                             await f.write(chunk)
@@ -155,7 +158,6 @@ def _get_post_urls(tags: list[str]) -> list[str]:
         return tags
     
     sanitized_tags = [sanitize_tag(tag) for tag in tags]
-    #print(sanitized_tags)
     nozomi_urls = []
     for tag in tags:
         if not tag.islower():
@@ -164,14 +166,8 @@ def _get_post_urls(tags: list[str]) -> list[str]:
         #    nozomi_urls.append(create_tag_filepath(tag))
         else:
             nozomi_urls.append(create_tag_filepath(sanitize_tag(tag)))
-    #nozomi_urls  = [create_tag_filepath(sanitized_tag) for sanitized_tag in sanitized_tags]
-    #print(nozomi_urls)
     tag_post_ids = [_get_post_ids(nozomi_url) for nozomi_url in nozomi_urls]
     flat_list = list(chain.from_iterable(tag_post_ids))
-    #print(tag_post_ids)
-    #print(len(flat_list))
-    #for i in range(len(flat_list)):
-    #    print(flat_list.count(flat_list[i]))
     if len(tags) == 1:
         for i in range(len(flat_list)): # artist with upper letters
             if not flat_list.count(flat_list[i]) >= 2:
@@ -182,8 +178,7 @@ def _get_post_urls(tags: list[str]) -> list[str]:
                 unic_post_ids.append(flat_list[i])
             if flat_list.count(flat_list[i]) >= 2:
                 unic_post_ids.append(flat_list[i])
-    #print(len(unic_post_ids))
-    #tag_post_ids = set.intersection(*map(set, tag_post_ids)) # Flatten list of tuples on intersection
+
     if len(unic_post_ids) == 0:
         print('Нет пересечения для тегов',sanitized_tags)
     post_urls = [create_post_filepath(post_id) for post_id in unic_post_ids]
@@ -205,13 +200,13 @@ def _get_post_ids(tag_filepath_url: str) -> list[int]:
     try:
         headers = {'Accept-Encoding': 'gzip, deflate, br', 'Content-Type': 'arraybuffer'}
         response = requests.get(tag_filepath_url, headers=headers)
-        print(response)
+        #print(response)
         total_ids = len(response.content) // 4  # divide by the size of uint
-        print(total_ids)
+        #print(total_ids)
         post_ids = list(struct.unpack(f'!{total_ids}I', bytearray(response.content)))
         #print(post_ids)
-    except Exception as ex:
-        raise ex
+    except Exception as e:
+        raise e
     return post_ids
 
 def get_urls_list(positive_tags: list[str], extra_tags: list[str] = None) -> list[str]:
@@ -221,33 +216,23 @@ def get_urls_list(positive_tags: list[str], extra_tags: list[str] = None) -> lis
         positive_post_urls = _get_post_urls(positive_tags)
         extra_post_urls = _get_post_urls(extra_tags)
         relevant_post_urls = set(positive_post_urls + list(set(extra_post_urls) - set(positive_post_urls)))
-        #print(relevant_post_urls)
+        relevant_post_urls = list(relevant_post_urls)
+        relevant_post_urls.sort()
         return relevant_post_urls
-    except InvalidTagFormat as tf:
-        raise tf
-    except Exception as ex:
-        raise ex
+    except Exception as e:
+        raise e
 
-def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, negative_tags: list[str] = None, relevant_post_date: datetime = None):
-    #positive_post_urls = []
-    #positive_post_filenames = []
-    #extra_post_urls = []
-    #extra_post_filenames = []
-    #corrupted_posts = []
-    if relevant_post_date is None:
-        relevant_post_date = datetime.strptime("1900-01-01 00:00:00+00:00", '%Y-%m-%d %H:%M:%S%z')
+def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, negative_tags: list[str] = None):
+
+    #if relevant_post_date is None:
+    #    relevant_post_date = datetime.strptime("1900-01-01 00:00:00+00:00", '%Y-%m-%d %H:%M:%S%z')
     c = []
     d = []
     e = []
     relevant_post_urls = []
     relevant_post_filenames = []
     print(positive_tags, extra_tags, negative_tags)
-    '''for tag in positive_tags:
-        tag = re.sub('[(]', '%28', tag)
-        tag = re.sub('[)]', '%29', tag)
-    for tag in extra_tags:
-        tag = re.sub('[(]', '%28', tag)
-        tag = re.sub('[)]', '%29', tag)'''
+
     try:
         if extra_tags is None or extra_tags == []:
             print('ушли вне экстра')
@@ -255,40 +240,18 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, 
             search_pos = r34Py.search(positive_tags, negative_tags)
             #print('search_pos =',search_pos)
             for result in search_pos:
-                post_date = result.date
                 norm_post_date = datetime.strftime(result.date, '%Y-%m-%d %H%M%S')
                 #print(post_date, relevant_post_date)
-                if post_date > relevant_post_date:
-                    if not result.video == '':
-                        c.append(result.fileurl)
-                        c.append(f'{norm_post_date}-{result.id}-{result.video}')
-                        d.append(c)
-                        c = []
-                    else:
-                        c.append(result.fileurl)
-                        c.append(f'{norm_post_date}-{result.id}-{result.image}')
-                        d.append(c)
-                        c = []
-                '''
-                if not result.fileurl=='':    
-                    if not result.video == '':
-                        if re.search(result.video, result.fileurl):
-                            positive_post_urls.append(result.fileurl)
-                            positive_post_filenames.append(f'{result.id}-{result.video}')
-                    elif not result.image == '':
-                        if re.search(result.image, result.fileurl):
-                            positive_post_urls.append(result.fileurl)
-                            positive_post_filenames.append(f'{result.id}-{result.image}')'''
-                '''if not (result.fileurl == '' or result.image == ''):
-                    if re.search(result.image, result.fileurl):
-                        positive_post_urls.append(result.fileurl)
-                        positive_post_filenames.append(f'{result.id}-{result.image}')
-                    else:
-                        print('corrupted post', result.id)
-                        corrupted_posts.append(result.id)
+                if result.video != '':
+                    c.append(result.fileurl)
+                    c.append(f'{norm_post_date}-{result.id}-{result.video}')
+                    d.append(c)
+                    c = []
                 else:
-                    print('corrupted post', result.id)
-                    corrupted_posts.append(result.id)'''
+                    c.append(result.fileurl)
+                    c.append(f'{norm_post_date}-{result.id}-{result.image}')
+                    d.append(c)
+                    c = []
         else:
             print('ушли в экстра')
             search_ext = []
@@ -298,55 +261,50 @@ def r34_urls_files_list(positive_tags: list[str], extra_tags: list[str] = None, 
                 for post in smal_search_ext:
                     search_ext.append(post)
             for result in search_pos:
-                post_date = result.date
                 norm_post_date = datetime.strftime(result.date, '%Y-%m-%d %H%M%S')
-                if post_date > relevant_post_date:
-                    if not result.video == '':
-                        c.append(result.fileurl)
-                        c.append(f'{norm_post_date}-{result.id}-{result.video}')
-                        d.append(c)
-                        c = []
-                    else:
-                        c.append(result.fileurl)
-                        c.append(f'{norm_post_date}-{result.id}-{result.image}')
-                        d.append(c)
-                        c = []
+                if result.video != '':
+                    c.append(result.fileurl)
+                    c.append(f'{norm_post_date}-{result.id}-{result.video}')
+                    d.append(c)
+                    c = []
+                else:
+                    c.append(result.fileurl)
+                    c.append(f'{norm_post_date}-{result.id}-{result.image}')
+                    d.append(c)
+                    c = []
             for result in search_ext:
-                post_date = result.date
                 norm_post_date = datetime.strftime(result.date, '%Y-%m-%d %H%M%S')
-                if post_date > relevant_post_date:
-                    if not result.video == '':
-                        c.append(result.fileurl)
-                        c.append(f'{norm_post_date}-{result.id}-{result.video}')
-                        e.append(c)
-                        c = []
-                    else:
-                        c.append(result.fileurl)
-                        c.append(f'{norm_post_date}-{result.id}-{result.image}')
-                        e.append(c)
-                        c = []
+                if result.video != '':
+                    c.append(result.fileurl)
+                    c.append(f'{norm_post_date}-{result.id}-{result.video}')
+                    e.append(c)
+                    c = []
+                else:
+                    c.append(result.fileurl)
+                    c.append(f'{norm_post_date}-{result.id}-{result.image}')
+                    e.append(c)
+                    c = []
         extra_nointersection = []
         for i in range(len(e)):
             if e.count(e[i])==1 or e[i] not in extra_nointersection:
                 extra_nointersection.append(e[i])
-        #extra_intersection = [item for item in e if item not in e]
+
         except_intersection = [item for item in extra_nointersection if item not in d]
         rel_list = d + except_intersection
-        #print('rel_list=',rel_list)
-        #relevant_post_urls = set(positive_post_urls + list(set(extra_post_urls) - set(positive_post_urls)))
-        #relevant_post_filenames = set(positive_post_filenames + list(set(extra_post_filenames) - set(positive_post_filenames)))
-
 
         for i in range(len(rel_list)):
             a, b = rel_list[i]
             relevant_post_urls.append(a)
             relevant_post_filenames.append(b)
+        relevant_post_filenames = list(relevant_post_filenames)
+        relevant_post_urls = list(relevant_post_urls)
 
         return relevant_post_urls, relevant_post_filenames
     except InvalidTagFormat as tf:
         raise tf
-    except Exception as ex:
-        raise ex
+    except Exception as e:
+        logging.exception('error in r34_urls_files_list')
+        raise e
 
 def r34_download(url, file_name):
     #res = requests.get(url, stream = True)
@@ -361,6 +319,7 @@ def r34_download(url, file_name):
     file_name = re.sub('[/:+#%]', '', file_name)
     if os.path.exists(file_name):
         print('File already exists', file_name)
+        time.sleep(0.1)
     else:
         print('File not exists', file_name)
         with requests.get(url, stream=True, headers=headers) as r:

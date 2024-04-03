@@ -10,7 +10,7 @@ from rule34Py.__vars__ import __headers__
 from helpers import save_ids_to_file, remove_duplicates, tag_counts, load_dictionary, save_dictionary, merge_dictionaries
 import multi, api
 r34Py = rule34Py()
-semaphoreNozomi = asyncio.Semaphore(16) #Not recommends change it
+semaphoreNozomi = asyncio.Semaphore(24) #Not recommends change it
 semaphore34 = asyncio.Semaphore(8) #Not recommends change it
 
 
@@ -36,71 +36,37 @@ async def runner():
     '''
     #---- declaration variants
     filename = '!ids.txt'
-    r_filename = '!fnames.txt'
     tags_filename = '!tags_counts.txt'
-    small_multilist = []
     full_multilist = []
-    from_r34 = True #False#True
-    with_date = False
     save_dir = 'D:/ghd/img/'
-    relevant_date = None #datetime.strptime("2023-01-01", '%Y-%m-%d')
-    negative_tags = []
-    extra_tags = []
-    positive_tags = []
-    # ----
-    #---r34 tags
-    positive_tags = ['nopanani']
-    #positive_tags = ['jashinn']
-    #positive_tags = ['kgovipositors']
-    
-    #positive_tags = ['egg_implantation ']
-    #extra_tags = ['oviposition', 'ovipositor', 'tentacle_ovipositor',
-    #              'vaginal_oviposition', 'oral_oviposition', 'anal_oviposition', 'urethral_oviposition', 'nipple_oviposition',
-    #              'vaginal_egg_implantation', 'oral_egg_implantation', 'anal_egg_implantation', 'urethral_egg_implantation', 'nipple_egg_implantation',
-    #              'egg_bulge', 'eggnant', 'egg_inflation']
-    #---nozomi tags
-    #positive_tags = ['sabamen']
-    #positive_tags = ['artist:ねこみかーる']
-    #extra_tags = ['pixiv_id_1522712']
-    '''
-    #----FOR SINGLE DOWNLOADING (USE ONLY SINGLE OR MULTI AT ONCE)
-    #Unlock the lines below to load the individual tags above
-    '''
-    #small_multilist.extend((positive_tags, extra_tags, negative_tags))
-    #full_multilist.append(small_multilist)
+
     '''
     #----FOR MULTI DOWNLOADING
     #Unlock one of the function and select: 1) from_r34 - true/false 2)with date - true/false
 
     the tags are inside multi.py
     '''
-    #from_r34 = False
-    #with_date = False
-
+    from_r34 = True
     full_multilist = multi.get_multi(from_r34)
-    #or
-    #full_multilist = multi.get_multi_with_date(from_r34)
+
     # ---
     '''there is no need to change the code below'''
     if not from_r34:
         '''for NOZOMI.la'''
-        if not full_multilist == '':
+        if full_multilist != '':
             print(full_multilist)
             for i in range(len(full_multilist)):
-                #multi check date
-                if with_date:
-                    internal_pos, internal_ext, internal_neg, relevant_date = full_multilist[i]
-                else:    
-                    internal_pos, internal_ext, internal_neg = full_multilist[i]
+                #multi check date   
+                internal_pos, internal_ext, internal_neg = full_multilist[i]
                 #очистка списка тегов перед началось проверок и загрузок
                 tag_counts.clear()
-                merged_dictionary = sorted_dict = dictionary1 = {}
+                sorted_dict = {}
 
-                url_list = api.get_urls_list(internal_pos, internal_ext)#(positive_tags, extra_tags)
+                url_list = api.get_urls_list(internal_pos, internal_ext)
                 url_list = list(url_list)
                 url_list.sort()
                 # go to dir
-                if not len(url_list) == 0:
+                if len(url_list) != 0:
                     string_tag = ''.join(internal_pos)
                     folder_tag = re.sub(r'[<>/;,:\s]', ' ', string_tag)
                     if not os.path.exists(save_dir + folder_tag):
@@ -114,7 +80,7 @@ async def runner():
                             async with semaphoreNozomi:
                                 tasks= []
                                 for post_url in url_list:
-                                    tasks.append(asyncio.create_task(api.async_nozomi_download_file(session, semaphoreNozomi, post_url, internal_neg, relevant_date)))
+                                    tasks.append(asyncio.create_task(api.async_nozomi_download_file(session, semaphoreNozomi, post_url, internal_neg)))
                                 await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач'''
                         
 
@@ -138,7 +104,7 @@ async def runner():
                             async with semaphoreNozomi:
                                 tasks= []
                                 for post_url in list2_unique:
-                                    tasks.append(asyncio.create_task(api.async_nozomi_download_file(session, semaphoreNozomi, post_url, internal_neg, relevant_date)))
+                                    tasks.append(asyncio.create_task(api.async_nozomi_download_file(session, semaphoreNozomi, post_url, internal_neg)))
                                 await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач'''
 
 
@@ -155,18 +121,15 @@ async def runner():
                         print(f'File {tags_filename} saved with {len(sorted_dict)} new tags')
     else:
         '''FOR RULE34.xxx'''
-        if not full_multilist == []:
+        if full_multilist != []:
             print(full_multilist)
             for i in range(len(full_multilist)):
                 #multi check date
-                if with_date:
-                    internal_pos, internal_ext, internal_neg, relevant_date = full_multilist[i]
-                else:    
-                    internal_pos, internal_ext, internal_neg = full_multilist[i]
+                internal_pos, internal_ext, internal_neg = full_multilist[i]
                 #очистка списка тегов перед началось проверок и загрузок
                 tag_counts.clear()
-                merged_dictionary = sorted_dict = dictionary1 = {}
-                urls, filenames = api.r34_urls_files_list(internal_pos, internal_ext, internal_neg, relevant_date)
+                sorted_dict = {}
+                urls, filenames = api.r34_urls_files_list(internal_pos, internal_ext, internal_neg)
                 urls = list(urls)
                 filenames = list(filenames)
                 string_tag = ''.join(internal_pos)
@@ -177,23 +140,19 @@ async def runner():
                 os.chdir(save_dir + folder_tag)
                 print("Текущая директория изменилась на ", os.getcwd())
                 # загрузка файлов
-                if not os.path.exists(filename) and not os.path.exists(r_filename):
-                    print('urls File not exists:', filename)
-                    print('filenames File not exists:', r_filename)
-
-                    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session:
-                        async with semaphore34:
-                            tasks= []
-                            for i in range(len(urls)):
-                                tasks.append(asyncio.create_task(api.async_r34_download_file(session, semaphore34, urls[i], filenames[i])))
-                            await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач'''
+                async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session:
+                    async with semaphore34:
+                        tasks= []
+                        for i in range(len(urls)):
+                            tasks.append(asyncio.create_task(api.async_r34_download_file(session, semaphore34, urls[i], filenames[i])))
+                        await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач'''
 
                     '''threads= []
                     with ThreadPoolExecutor(max_workers=20) as executor:
                         for i in range(len(urls)):
                                 threads.append(executor.submit(api.r34_download, urls[i], filenames[i]))'''
                     
-                    save_ids_to_file(urls, filename) # Сохранение списка url в файл
+                    '''save_ids_to_file(urls, filename) # Сохранение списка url в файл
                     print(f'File {filename} saved with {len(urls)} ids')
                     save_ids_to_file(filenames, r_filename) # Сохранение списка filenames в файл
                     print(f'File {r_filename} saved with {len(filenames)} ids')
@@ -232,21 +191,21 @@ async def runner():
                             list1_from_file = [str(line) for line in lines]
                         print(f'File exists: {r_filename} with {len(list1_from_file)} filenames')
                         # Получение уникальных id из второго списка, отсутствующих в первом списке
-                        filenames_unique = remove_duplicates(list1_from_file, filenames) 
+                        filenames_unique = remove_duplicates(list1_from_file, filenames) '''
 
-                        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session:
-                            async with semaphore34:
-                                tasks= []
-                                for i in range(len(urls_unique)):
-                                    tasks.append(asyncio.create_task(api.async_r34_download_file(session, semaphore34, urls_unique[i], filenames_unique[i])))
-                                await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач'''
+                    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session:
+                        async with semaphore34:
+                            tasks= []
+                            for i in range(len(urls)):
+                                tasks.append(asyncio.create_task(api.async_r34_download_file(session, semaphore34, urls[i], filenames[i])))
+                            await asyncio.gather(*tasks) # ожидает результаты выполнения всех задач'''
 
-                        '''threads= []
-                        with ThreadPoolExecutor(max_workers=20) as executor:
-                            for i in range(len(urls_unique)):
-                                threads.append(executor.submit(api.r34_download, urls_unique[i], filenames_unique[i]))'''
+                    '''threads= []
+                    with ThreadPoolExecutor(max_workers=20) as executor:
+                        for i in range(len(urls_unique)):
+                            threads.append(executor.submit(api.r34_download, urls_unique[i], filenames_unique[i]))'''
 
-                    #cохранение файлов
+                    '''#cохранение файлов
                         # Дописывание оставшихся id в файл
                         with open(filename, 'a') as file:
                             for id in urls_unique:
@@ -276,7 +235,7 @@ async def runner():
 
                     except FileNotFoundError:
                         print('the file of urls or filenames doesnt exist. You should delete another file and retry')
-                        exit()
+                        exit()'''
 
 
 if __name__ == '__main__':

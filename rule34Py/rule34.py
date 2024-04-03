@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import logging
 from helpers import tag_counts
 import time
 import requests
@@ -11,10 +12,6 @@ from urllib.parse import parse_qs
 from rule34Py.api_urls import API_URLS, __base_url__
 from rule34Py.__vars__ import __headers__, __version__
 from rule34Py.post import Post
-from rule34Py.post_comment import PostComment
-from rule34Py.icame import ICame
-from rule34Py.stats import Stat
-from rule34Py.toptag import TopTag
 
 class Stats:
     def __get_top(self, name):
@@ -131,7 +128,7 @@ class rule34Py(Exception):
         # Check if "limit" is in between 1 and 1000
         if not ignore_max_limit and limit > 1000 or limit <= 0:
             raise Exception("invalid value for \"limit\"\n  value must be between 1 and 1000\n  see for more info:\n  https://github.com/b3yc0d3/rule34Py/blob/master/DOC/usage.md#search")
-            return
+
         counter_pid = 0
         params = [
             #["TAGS", ""],
@@ -143,11 +140,8 @@ class rule34Py(Exception):
             params.append(["TAGS", "+".join(tags)])
         else:
             params.append(["TAGS", tags])
-        #ntag_chk = params[2][1]
-        #ntag = params[0][1]
-        #print(tags, negtags)
-        #print(ntag, ntag_chk)
-        if not negtags == []:
+
+        if negtags != []:
             url = f"https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&limit={{LIMIT}}&tags={{TAGS}}+-{{NTAGS}}"
         else:
             url = f"https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&limit={{LIMIT}}&tags={{TAGS}}"
@@ -174,7 +168,7 @@ class rule34Py(Exception):
         res_len = len(response.content)
         ret_posts = []
         small_part_posts = []
-
+        time.sleep(1)
         # checking if status code is not 200
         # (it's useless currently, becouse rule34.xxx returns always 200 OK regardless of an error)
         # and checking if content lenths is 0 or smaller
@@ -194,7 +188,7 @@ class rule34Py(Exception):
             #print(post_tags)
             for tag in post_tags:
                 #print(tag)
-                if not tag == '':
+                if tag != '':
                     tag_counts[tag] += 1 
             small_part_posts.append(_post)
             #small_part_posts.append(Post.from_xml(post))
@@ -202,13 +196,13 @@ class rule34Py(Exception):
         
         while len(small_part_posts) == 100:
             print('получили small_part_posts', len(small_part_posts))
-            posts_inside_while = []
             small_part_posts = []
             counter_pid+=1
             formatted_url = f'{no_pid_url}&pid={counter_pid}'
             print(formatted_url)
             try:
-                response2 = requests.get(formatted_url, stream=True, headers=__headers__)               
+                response2 = requests.get(formatted_url,  headers=__headers__)
+                print(response2)
                 soup2 = BeautifulSoup (response2.content, 'xml')
                 myposts2 = soup2.find_all("post")
                 for post in myposts2:
@@ -217,17 +211,17 @@ class rule34Py(Exception):
                     #print(post_tags)
                     for tag in post_tags:
                         #print(tag)
-                        if not tag == '':
+                        if tag != '':
                             tag_counts[tag] += 1 
                     small_part_posts.append(_post)#(Post.from_xml(post))
                 print('вторая проверка small_part_posts',len(small_part_posts))
-                #if not len(posts_inside_while) == 0:
-                #    [small_part_posts.append(posts_inside_while[i]) for i in range(len(posts_inside_while))]
-            except Exception as ex:
-                raise ex
-            if not len(small_part_posts) == 0:
+
+            except Exception as e:
+                logging.exception('error while accessing the dict')
+                raise e
+            if len(small_part_posts) != 0:
                 [ret_posts.append(small_part_posts[i]) for i in range(len(small_part_posts))]
-            time.sleep(1)
+            time.sleep(0.2)
             
         #[ret_posts.append(small_part_posts[i]) for i in range(len(small_part_posts))]
         print('всего получили внутри search',len(ret_posts))
