@@ -12,5 +12,5 @@ aiohttp==3.7.4.post0
 tqdm==4.56.0
 vk_api==11.9.4
 pytils==0.3
-pytrovich==0.0.2
+pytrovich==0.0.4
 PyYAML==5.4.1
