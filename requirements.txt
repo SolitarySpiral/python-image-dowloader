@@ -9,7 +9,7 @@ asyncio==3.4.3
 bs4==1.0.0
 aiofiles==23.2.1
 aiohttp==3.9.5
-tqdm==4.66.2
+tqdm==4.66.4
 vk_api==11.9.9
 pytils==0.4.1
 pytrovich==0.0.4
