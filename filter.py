@@ -3,70 +3,83 @@
 from collections import defaultdict
 import hashlib
 from pathlib import Path
+import logging
+from concurrent.futures import ThreadPoolExecutor
 
 
-def chunk_reader(fobj, chunk_size=1024):
-    """Generator that reads a file in chunks of bytes"""
-    while True:
-        chunk = fobj.read(chunk_size)
-        if not chunk:
-            return
-        yield chunk
+def chunk_reader(file_path, chunk_size=1024):
+    """Generator that reads a file in chunks of bytes from a given path"""
+    with open(file_path, 'rb') as fobj:
+        while True:
+            chunk = fobj.read(chunk_size)
+            if not chunk:
+                break
+            yield chunk
 
 
-def get_hash(filename: Path, first_chunk_only=False, hash=hashlib.sha1):
-    hashobj = hash()
+def get_hash(filename: Path, first_chunk_only=False, hash_algo=hashlib.sha256):
+    hashobj = hash_algo()
     with open(filename, "rb") as file_object:
         if first_chunk_only:
             hashobj.update(file_object.read(1024))
         else:
-            for chunk in chunk_reader(file_object):
+            # Reading in chunks to handle large files
+            for chunk in iter(lambda: file_object.read(4096), b''):
                 hashobj.update(chunk)
-        hashed = hashobj.digest()
-
-        return hashed
+        return hashobj.hexdigest()
 
 
 def check_for_duplicates(path: Path) -> int:
-    hashes_by_size = defaultdict(list)  # dict of size_in_bytes: [full_path_to_file1, full_path_to_file2, ]
-    hashes_on_1k = defaultdict(list)  # dict of (hash1k, size_in_bytes): [full_path_to_file1, full_path_to_file2, ]
-    hashes_full = {}   # dict of full_file_hash: full_path_to_file_string
-    files = path.glob("*.*")#path.glob("*.jpg")
+    """Checks files under the given directory path for duplicates and removes them."""
+    hashes_by_size = defaultdict(list)
+    hashes_on_1k = defaultdict(list)
+    hashes_full = {}
 
+    files = list(path.glob("*.*"))
+
+    # Populate hashes_by_size
     for file_path in files:
-        # if the target is a symlink (soft one), this will
-        # dereference it - change the value to the actual target file
         file_size = file_path.stat().st_size
         hashes_by_size[file_size].append(file_path)
 
+    # Find potential duplicates based on 1K hash.
+    def hash_first_1k(file_path):
+        small_hash = get_hash(file_path, first_chunk_only=True)
+        if small_hash:
+            file_size = file_path.stat().st_size
+            hashes_on_1k[(small_hash, file_size)].append(file_path)
 
-    # For all files with the same file size, get their hash on the 1st 1024 bytes only
-    for size_in_bytes, files in hashes_by_size.items():
-        if len(files) < 2:
-            continue    # this file size is unique, no need to spend CPU cycles on it
+    with ThreadPoolExecutor() as executor:
+        executor.map(hash_first_1k, [fp for flist in hashes_by_size.values() for fp in flist if len(flist) > 1])
 
-        for filename in files:
-            small_hash = get_hash(filename, first_chunk_only=True)
-            # the key is the hash on the first 1024 bytes plus the size - to
-            # avoid collisions on equal hashes in the first part of the file
-            hashes_on_1k[(small_hash, size_in_bytes)].append(filename)
-
+    # Check full file hash for actual duplicates
     duplicates = []
 
-    # For all files with the hash on the 1st 1024 bytes, get their hash on the full file - collisions will be duplicates
-    for __, files_list in hashes_on_1k.items():
-        if len(files_list) < 2:
-            continue    # this hash of fist 1k file bytes is unique, no need to spend cpy cycles on it
-
-        for filename in files_list:
-            full_hash = get_hash(filename, first_chunk_only=False)
-            duplicate = hashes_full.get(full_hash)
-            if duplicate:
-                duplicates.append(filename)
+    def check_full_hash(file_path):
+        """ Check full hash (if applicable) and identify duplicates. """
+        full_hash = get_hash(file_path)
+        if full_hash:
+            if full_hash in hashes_full:
+                duplicates.append(file_path)
             else:
-                hashes_full[full_hash] = filename
+                hashes_full[full_hash] = file_path
 
+    files_with_same_1k = [fp for flist in hashes_on_1k.values() for fp in flist if len(flist) > 1]
+    with ThreadPoolExecutor() as executor:
+        executor.map(check_full_hash, files_with_same_1k)
+
+    # Delete duplicated files
     for file in duplicates:
         file.unlink()
 
     return len(duplicates)
+
+
+def handle_photo_processing(photos, photos_path, duplicateflag):
+    if duplicateflag:
+        logging.info("Check for duplicates")
+        duplicates_count = check_for_duplicates(photos_path)
+        logging.info(f"Duplicates removed: {duplicates_count}")
+        logging.info(f"Total downloaded: {len(photos) - duplicates_count} photo")
+    else:
+        logging.info(f"Total downloaded: {len(photos)} photo")
