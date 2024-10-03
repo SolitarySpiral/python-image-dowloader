@@ -14,7 +14,6 @@ from multi import get_multi
 import api
 from datetime import datetime
 from dacite import from_dict
-from pathlib import Path
 from data import Post
 
 from filter import handle_photo_processing
@@ -29,10 +28,11 @@ logging.basicConfig(
     format='%(asctime)s - %(message)s',datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO
 )
 
-logger = logging.getLogger('vk_api')
+logger = logging.getLogger("vk_api")
 logger.disabled = True
 
 loop = asyncio.get_event_loop()
+
 
 class Utils:
     def create_dir(self, dir_path: Path):
@@ -43,9 +43,12 @@ class Utils:
         if dir_path.exists():
             dir_path.rmdir()
 
+
 class NozomiDownloader:
     def __init__(self, huge_tag_list: list) -> None:
         self.huge_tag_list = huge_tag_list
+        self.photos = []  # Initialize the photos list
+        self.errors = []  # Initialize an error list to store exceptions for review
 
     async def get_posts(self, session, url, internal_neg):
         try:
@@ -153,6 +156,7 @@ class Rule34Downloader:
 
     async def main(self, duplicateflag: bool =True):
         for i in range(len(self.huge_tag_list)):
+            time_start = time.time()
             internal_pos, internal_ext, internal_neg = self.huge_tag_list[i]
             time_start = time.time()
             logging.info("Requesting a list of urls")
@@ -175,7 +179,7 @@ class Rule34Downloader:
                     internal_pos,
                 )
                 exit()
-            
+
             for i, url in enumerate(urls):
                 #futures.append(self.get_posts(session,url, internal_neg))
                 self.photos.append({
@@ -201,6 +205,7 @@ if __name__ == '__main__':
     print("1. Download all photos from Nozomi")
     print("2. Download all photos from Rule34.xxx")
 
+    # Enter the main loop for handling user input
     while True:
         # Wait a minimal amount of time for CPU relief
         time.sleep(0.1)

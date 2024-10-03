@@ -7,17 +7,18 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 
 
-def chunk_reader(fobj, chunk_size=1024):
-    """Generator that reads a file in chunks of bytes"""
-    while True:
-        chunk = fobj.read(chunk_size)
-        if not chunk:
-            return
-        yield chunk
+def chunk_reader(file_path, chunk_size=1024):
+    """Generator that reads a file in chunks of bytes from a given path"""
+    with open(file_path, 'rb') as fobj:
+        while True:
+            chunk = fobj.read(chunk_size)
+            if not chunk:
+                break
+            yield chunk
 
 
-def get_hash(filename: Path, first_chunk_only=False, hash=hashlib.sha1):
-    hashobj = hash()
+def get_hash(filename: Path, first_chunk_only=False, hash_algo=hashlib.sha256):
+    hashobj = hash_algo()
     with open(filename, "rb") as file_object:
         if first_chunk_only:
             hashobj.update(file_object.read(1024))
@@ -32,10 +33,12 @@ def check_for_duplicates(path: Path) -> int:
     """Checks files under the given directory path for duplicates and removes them."""
     hashes_by_size = defaultdict(list)  
     hashes_on_1k = defaultdict(list) 
+
     hashes_full = {}
 
     files = list(path.glob("*.*"))
 
+    # Populate hashes_by_size
     for file_path in files:
         file_size = file_path.stat().st_size
         hashes_by_size[file_size].append(file_path)
@@ -81,3 +84,4 @@ def handle_photo_processing(photos, photos_path, duplicateflag):
         logging.info(f"Total downloaded: {len(photos) - duplicates_count} photo")
     else:
         logging.info(f"Total downloaded: {len(photos)} photo")
+

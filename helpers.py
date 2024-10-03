@@ -7,6 +7,7 @@ If this package grows more complex, the functionality can be divided in a more m
 the simplicity of the current API, there isn't really a point right now.
 
 """
+
 import json
 import re
 import os
@@ -35,7 +36,7 @@ def load_dictionary(file_path):
 
 # saves the dictionary.
 def save_dictionary(dictionary, file_path):
-    with open(file_path, 'w', encoding="utf-8") as file:
+    with open(file_path, "w", encoding="utf-8") as file:
         for tag, count in dictionary.items():
             file.write(f"{tag}: {count}\n")
 
@@ -49,6 +50,7 @@ def merge_dictionaries(dictionary1, dictionary2):
         else:
             merged_dictionary[key] = value
     return merged_dictionary
+
 
 def sanitize_tag(tag: str) -> str:
     """Remove and replace any invalid characters in the tag.
@@ -65,7 +67,7 @@ def sanitize_tag(tag: str) -> str:
     """
     try:
         sanitized_tag = tag.lower().strip()
-        sanitized_tag = re.sub('[/#%]', '', sanitized_tag)
+        sanitized_tag = re.sub("[/#%]", "", sanitized_tag)
         _validate_tag_sanitized(sanitized_tag)
     except InvalidTagFormat as tf:
         raise tf
@@ -91,13 +93,13 @@ def parse_post_id(url: str) -> int:
         post_id = re.search(r"post\/([\s\S]*?)\.html", url).group(1)
         post_id = int(post_id)
     except AttributeError:
-        raise InvalidUrlFormat('The provided URL %s could not be parsed.', url)
+        raise InvalidUrlFormat("The provided URL %s could not be parsed.", url)
     except Exception as ex:
         raise ex
     return post_id
 
 
-def create_media_filepath(media: MediaMetaData) -> str:
+def create_media_filepath(media: MediaMetaData) -> str:  # type: ignore
     """Build the path to media on the site.
 
     Args:
@@ -108,16 +110,16 @@ def create_media_filepath(media: MediaMetaData) -> str:
 
     """
     if media.is_video:
-        subdomain = 'v'
+        subdomain = "v"
         url_type = media.type
-    elif media.type == 'gif':
-        subdomain = 'g'
-        url_type = 'gif'
+    elif media.type == "gif":
+        subdomain = "g"
+        url_type = "gif"
     else:
-        subdomain = 'w'
-        url_type = 'webp'
+        subdomain = "w"
+        url_type = "webp"
     path = _calculate_post_filepath(media.dataid)
-    url_fmt = 'https://{subdomain}.nozomi.la/{hashed_path}.{url_type}'
+    url_fmt = "https://{subdomain}.nozomi.la/{hashed_path}.{url_type}"
     url = url_fmt.format(subdomain=subdomain, hashed_path=path, url_type=url_type)
     return url
 
@@ -142,7 +144,7 @@ def create_tag_filepath(sanitized_tag: str) -> str:
         _validate_tag_sanitized(sanitized_tag)
         encoded_tag = _encode_tag(sanitized_tag)
     except InvalidTagFormat:
-        raise InvalidTagFormat('Tag must be sanitized before creating a filepath.')
+        raise InvalidTagFormat("Tag must be sanitized before creating a filepath.")
     except Exception as ex:
         raise ex
     return f"https://j.nozomi.la/nozomi/{encoded_tag}.nozomi"
@@ -164,7 +166,7 @@ def create_post_filepath(post_id: int) -> str:
     """
     post_id = str(post_id)
     path = _calculate_post_filepath(post_id)
-    return f'https://j.nozomi.la/post/{path}.json'
+    return f"https://j.nozomi.la/post/{path}.json"
 
 
 def _calculate_post_filepath(id: str) -> str:
@@ -180,7 +182,7 @@ def _calculate_post_filepath(id: str) -> str:
     if len(id) < 3:
         path = id
     else:
-        path = re.sub('^.*(..)(.)$', r'\g<2>/\g<1>/' + id, id)
+        path = re.sub("^.*(..)(.)$", r"\g<2>/\g<1>/" + id, id)
     return path
 
 
@@ -196,8 +198,10 @@ def _validate_tag_sanitized(tag: str) -> None:
     """
     if not tag:
         raise InvalidTagFormat(f"The tag '{tag}' is invalid. Cannot be empty.")
-    if tag[0] == '-':
-        raise InvalidTagFormat(f"The tag '{tag}' is invalid. Cannot begin with character '-'")
+    if tag[0] == "-":
+        raise InvalidTagFormat(
+            f"The tag '{tag}' is invalid. Cannot begin with character '-'"
+        )
 
 
 def _encode_tag(sanitized_tag: str) -> str:
@@ -210,14 +214,19 @@ def _encode_tag(sanitized_tag: str) -> str:
         The encoded sanitized search tag.
 
     """
-    convert_char_to_hex = lambda c: f"%{format(ord(c.group(0)), 'x')}"
-    encoded_tag = re.sub('[;/?:@=&]', convert_char_to_hex, sanitized_tag)
+
+    def convert_char_to_hex(c):
+        return f"%{format(ord(c.group(0)), 'x')}"
+
+    encoded_tag = re.sub("[;/?:@=&]", convert_char_to_hex, sanitized_tag)
     return encoded_tag
 
+
 def save_ids_to_file(ids, filename):
-    with open(filename, 'w') as file:
+    with open(filename, "w") as file:
         for id in ids:
-            file.write(str(id) + '\n')
+            file.write(str(id) + "\n")
+
 
 def remove_duplicates(ids1, ids2):
     ids2 = set(ids2)
