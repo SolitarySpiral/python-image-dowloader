@@ -5,57 +5,40 @@ from pathlib import Path
 import aiohttp
 import aiofiles
 import asyncio
-from api import headersNozomi
+#from api import headersNozomi, headersR34
 from tqdm.asyncio import tqdm
 
-
-async def download_photos(photos: list, downloads_dir: Path):
+async def download_photos(photos: list, headers):
     async with aiohttp.ClientSession(
-        connector=aiohttp.TCPConnector(limit=8)
+        connector=aiohttp.TCPConnector(limit=5)
     ) as session:
         filepath = Path.cwd()
         futures = [
             download_photo(
-                session,
-                photo["url"],
+                session, 
+                photo["url"], 
                 filepath.joinpath(photo["filename"]),
-                photo["postid"],
-                downloads_dir,
+                headers
             )
             for photo in photos
         ]
+
         for future in tqdm(asyncio.as_completed(futures), total=len(futures)):
             await future
 
-
 async def download_photo(
-    session: aiohttp.ClientSession,
-    photo_url: str,
-    photo_path: Path,
-    postid: str,
-    downloads_dir: Path,
-):
-    # headers = {
-    #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0",
-    #     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-    #     "Accept-Language": "en-US,en;q=0.9",
-    #     "Accept-Encoding": "gzip, deflate, br",
-    #     "Referer": "https://nozomi.la/",
-    #     "Upgrade-Insecure-Requests": "1",
-    # }
+        session: aiohttp.ClientSession, 
+        photo_url: str, 
+        photo_path: Path,
+        headers):
     try:
         if not photo_path.exists():
-            async with session.get(photo_url, headers=headersNozomi) as response:
-                if response.status == 200:
-                    async with aiofiles.open(photo_path, "wb") as f:
-                        await f.write(await response.read())
-                    # Writing postid after successful download
-                    postids_file = downloads_dir.joinpath("postids.txt")
-                    async with aiofiles.open(postids_file, "a") as f:
-                        await f.write(f"{postid}\n")
+            async with session.get(photo_url, headers = headers) as response:
+                async with aiofiles.open(photo_path, 'wb') as f:
+                    async for chunk in response.content.iter_chunked(1024):
+                        await f.write(chunk)
     except Exception as e:
         print(e)
-
 
 def download_time_log(photos, download_time):
     logging.info(

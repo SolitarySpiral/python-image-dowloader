@@ -21,8 +21,9 @@ from exceptions import InvalidTagFormat
 from rule34Py import rule34Py
 
 r34Py = rule34Py()
-# end main imported
-# semaphoreNozomiFile = asyncio.Semaphore(16)
+#end main imported
+#semaphoreNozomiFile = asyncio.Semaphore(16)
+
 
 
 headersNozomi = {
@@ -46,7 +47,8 @@ headersR34 = {
 
 
 async def async_nozomi_download_file(
-    session, semaphoreNozomi, url: str, blacklist: list[str], relevant_post_date=None
+        session, semaphoreNozomi, url: str, blacklist: list[str], relevant_post_date = None
+
 ):
     filepath = Path.cwd()
     relevant_post_date = relevant_post_date or datetime.strptime(
@@ -58,8 +60,8 @@ async def async_nozomi_download_file(
         async with session.get(url) as response:
             post_data = await response.json()
         current_post = from_dict(data_class=Post, data=post_data)
-        post_date = datetime.strptime(current_post.date, "%Y-%m-%d %H:%M:%S-%f")
-        norm_post_date = post_date.strftime("%Y-%m-%d %H%M%S")
+        post_date = datetime.strptime(current_post.date, '%Y-%m-%d %H:%M:%S-%f')
+        norm_post_date = datetime.strftime(post_date, '%Y-%m-%d %H%M%S')
 
         if post_date > relevant_post_date:
             current_post_tag_list = [
@@ -73,9 +75,10 @@ async def async_nozomi_download_file(
                 for tag in tag_list
                 if tag.tag
             ]
-            for tag in current_post_tag_list:
-                tag_counts[tag] += 1
 
+            #for tag in current_post_tag_list:
+            #    tag_counts[tag] += 1
+            
             if not set(current_post_tag_list).intersection(blacklist):
                 for nozomi_img_counter, media_meta_data in enumerate(
                     current_post.imageurls, start=1
@@ -92,38 +95,31 @@ async def async_nozomi_download_file(
                         async with semaphoreNozomi, session.get(
                             media_meta_data.imageurl, headers=headersNozomi
                         ) as r:
-                            async with aiofiles.open(image_filepath, "wb") as f:
+
+                            async with aiofiles.open(image_filepath, 'wb') as f:
                                 async for chunk in r.content.iter_chunked(1024):
                                     await f.write(chunk)
-                        print("File is downloaded", image_filepath)
+                        print('File is downloaded', image_filepath)
             else:
-                print("Post in blacklist", current_post.postid)
+                print('Post in blacklist', current_post.postid)                 
+
     except aiohttp.ClientError as e:
         return e
     except Exception as ex:
         return ex
-
-
+    
 async def async_r34_download_file(session, semaphore34, url, file_name):
-    # res = requests.get(url, stream = True)
     try:
-        file_name = re.sub("[/:+#%]", "", file_name)
-        if os.path.exists(file_name):
-            print("File already exist", file_name)
-        else:
-            # print('File not exists', file_name)
-            async with semaphore34:
-                async with session.get(url, headers=headersR34) as r:
-                    assert r.status == 200
-                    # with open(file_name, 'wb') as f:
-                    async with aiofiles.open(file_name, "wb") as f:
-                        # await shutil.copyfileobj(r.raw, f)
-                        while True:
-                            chunk = await r.content.read()
-                            if not chunk:
-                                break
-                            await f.write(chunk)
-            print("File is downloaded", file_name)
+        file_name = re.sub('[/:+#%]', '', file_name)
+        if not os.path.exists(file_name):
+            async with semaphore34, session.get(
+                url, headers=headersR34
+            ) as r:
+                async with aiofiles.open(file_name, 'wb') as f:
+                    async for chunk in r.content.iter_chunked(1024):
+                        await f.write(chunk)
+            print('File is downloaded', file_name)
+
     except aiohttp.ClientError as e:
         return e
     except Exception as ex:

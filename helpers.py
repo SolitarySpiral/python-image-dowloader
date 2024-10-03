@@ -21,7 +21,6 @@ MediaMetaData = ForwardRef("MediaMetaData")
 # defaultdict is used to count tags in total across all posts of a specific group. The following 3 functions are used together.
 tag_counts = defaultdict(int)
 
-
 # loads the dictionary if it already exists
 def load_dictionary(file_path):
     try:
@@ -35,13 +34,11 @@ def load_dictionary(file_path):
         print("deleted dictionary", file_path)
     return dictionary
 
-
 # saves the dictionary.
 def save_dictionary(dictionary, file_path):
     with open(file_path, "w", encoding="utf-8") as file:
         for tag, count in dictionary.items():
             file.write(f"{tag}: {count}\n")
-        # json.dump(dictionary, file)
 
 
 # merges the existing dictionary with a list of tags from an additional load.
@@ -69,13 +66,6 @@ def sanitize_tag(tag: str) -> str:
 
     """
     try:
-        """
-        sanitized_tag = tag
-        if not 'artist:' in sanitized_tag:
-            sanitized_tag = tag.lower().strip()
-            sanitized_tag = re.sub('[/#%]', '', sanitized_tag)
-            _validate_tag_sanitized(sanitized_tag)
-        """
         sanitized_tag = tag.lower().strip()
         sanitized_tag = re.sub("[/#%]", "", sanitized_tag)
         _validate_tag_sanitized(sanitized_tag)

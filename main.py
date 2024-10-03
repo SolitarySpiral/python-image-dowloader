@@ -8,6 +8,8 @@ from pathlib import Path
 import aiohttp
 import asyncio
 
+from pytils import numeral
+
 from multi import get_multi
 import api
 from datetime import datetime
@@ -16,13 +18,14 @@ from data import Post
 
 from filter import handle_photo_processing
 from functions import download_photos, download_time_log
+from api import headersR34, headersNozomi
 from tqdm.asyncio import tqdm
 
-BASE_DIR = Path("/Stuff/nozomi/").resolve()
-DOWNLOADS_DIR = BASE_DIR.joinpath("img")
+BASE_DIR = Path('D:/ghd/').resolve() #Path(__file__).resolve().parent
+DOWNLOADS_DIR = BASE_DIR.joinpath("img") #'D:/ghd/img/'
 
 logging.basicConfig(
-    format="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S", level=logging.INFO
+    format='%(asctime)s - %(message)s',datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO
 )
 
 logger = logging.getLogger("vk_api")
@@ -54,9 +57,6 @@ class NozomiDownloader:
                     post_data = await response.json()
                     current_post = from_dict(data_class=Post, data=post_data)
 
-                    # Extract postid and store it for future reference
-                    postid = current_post.postid
-
                     # Make sure you're working with a string and it's not None.
                     date_str = current_post.date or "1990-01-01"
 
@@ -80,6 +80,18 @@ class NozomiDownloader:
                     ]:
                         tag_pool.extend(tags)
 
+                    """#получаем список тегов для сравнения с негативными тегами
+                    current_post_tag_list = []
+                    for i in range(len(current_post.artist)):
+                        current_post_tag_list.append(current_post.artist[i].tag)
+                    for i in range(len(current_post.character)):
+                        current_post_tag_list.append(current_post.character[i].tag)
+                    for i in range(len(current_post.copyright)):
+                        current_post_tag_list.append(current_post.copyright[i].tag)
+                    for i in range(len(current_post.general)):
+                        current_post_tag_list.append(current_post.general[i].tag)
+                    """
+
                     if not set(tag_pool).intersection(internal_neg):
                         # Compile the regex pattern outside the loop
                         invalid_char_re = re.compile(r"[<>/:#%]")
@@ -90,8 +102,7 @@ class NozomiDownloader:
                                     "",
                                     f"{normal_post_date}-{i+1}-{image.dataid}.{image.type}",
                                 ),
-                                "url": image.imageurl,
-                                "postid": postid,  # Include postid
+                                "url": image.imageurl
                             }
                             for i, image in enumerate(current_post.imageurls)
                             if image.imageurl  # Ensure the URL is not empty
@@ -102,21 +113,23 @@ class NozomiDownloader:
             self.errors.append(f"Error fetching {url}: {e}")
             print(f"Error fetching {url}: {e}")
 
-    async def main(self, duplicateflag: bool = True):
-        for internal_pos, internal_ext, internal_neg in self.huge_tag_list:
+    async def main(self, duplicateflag: bool =True):
+        for i in range(len(self.huge_tag_list)):
+            internal_pos, internal_ext, internal_neg = self.huge_tag_list[i]
             time_start = time.time()
             logging.info("Requesting a list of urls")
             url_list = api.get_urls_list(
-                internal_pos, internal_ext, downloads_dir=DOWNLOADS_DIR
+                internal_pos, 
+                internal_ext
             )
             folder_tag = re.sub(r"[<>/;,:\s]", " ", "".join(internal_pos))
             photos_path = DOWNLOADS_DIR.joinpath(folder_tag)
             utils.create_dir(
                 photos_path
-            )  # Assuming utils.create_dir is previously defined
+            ) # Assuming utils.create_dir is previously defined
             print(photos_path)
             self.photos = []
-
+            
             async with aiohttp.ClientSession(
                 connector=aiohttp.TCPConnector(limit=8)
             ) as session:
@@ -126,10 +139,10 @@ class NozomiDownloader:
 
                 for future in tqdm(asyncio.as_completed(futures), total=len(futures)):
                     await future
-
-            os.chdir(photos_path)
+            
+            os.chdir(photos_path)               
             logging.info("Let's start downloading")
-            await download_photos(self.photos, DOWNLOADS_DIR)
+            await download_photos(self.photos, headersNozomi)
 
             time_finish = time.time()
 
@@ -137,23 +150,21 @@ class NozomiDownloader:
 
             handle_photo_processing(self.photos, photos_path, duplicateflag)
 
-
 class Rule34Downloader:
     def __init__(self, huge_tag_list: list) -> None:
         self.huge_tag_list = huge_tag_list
 
-    async def main(self, duplicateflag: bool = True):
+    async def main(self, duplicateflag: bool =True):
         for i in range(len(self.huge_tag_list)):
             time_start = time.time()
             internal_pos, internal_ext, internal_neg = self.huge_tag_list[i]
+            time_start = time.time()
             logging.info("Requesting a list of urls")
-            # url_list = api.get_urls_list(internal_pos, internal_ext)
             urls, filenames = api.r34_urls_files_list(
                 internal_pos, internal_ext, internal_neg
             )
-            string_tag = "".join(internal_pos)
-            folder_tag = re.sub(r"[<>/;,:\s]", " ", string_tag)
-            folder_tag = "RULE_34 " + folder_tag
+            folder_tag = re.sub(r'[<>/;,:\s]', ' ', ''.join(internal_pos))
+            folder_tag = 'RULE_34 '+ folder_tag
             folder_tag = folder_tag.rstrip()
             photos_path = DOWNLOADS_DIR.joinpath(folder_tag)
             utils.create_dir(photos_path)
@@ -170,13 +181,15 @@ class Rule34Downloader:
                 exit()
 
             for i, url in enumerate(urls):
-                # futures.append(self.get_posts(session,url, internal_neg))
-                self.photos.append({"filename": filenames[i], "url": url})
-
-            # Скачиваем photoграфии со стены группы
-            os.chdir(photos_path)
+                #futures.append(self.get_posts(session,url, internal_neg))
+                self.photos.append({
+                    "filename": filenames[i],
+                    "url": url
+                })
+            
+            os.chdir(photos_path)               
             logging.info("Let's start downloading")
-            await download_photos(self.photos)
+            await download_photos(self.photos, headersR34)
 
             time_finish = time.time()
 
@@ -184,13 +197,11 @@ class Rule34Downloader:
 
             handle_photo_processing(self.photos, photos_path, duplicateflag)
 
-
 # Check if the __name__ is set to __main__ to ensure the script is being run directly
-if __name__ == "__main__":
+if __name__ == '__main__':
     utils = Utils()
     utils.create_dir(DOWNLOADS_DIR)
 
-    # Print the options for the downloader
     print("1. Download all photos from Nozomi")
     print("2. Download all photos from Rule34.xxx")
 
@@ -211,12 +222,11 @@ if __name__ == "__main__":
             if downloader_type == "1":
                 downloader = NozomiDownloader(huge_tag_list=get_multi(False))
             else:  # downloader_type must be "2"
-                downloader = Rule34Downloader(huge_tag_data=get_multi(True))
+                downloader = Rule34Downloader(huge_tag_list=get_multi(True))
 
             # Print the huge tag list for the user to see
             print(downloader.huge_tag_list)
 
-            # Validate the duplicate flag input
             if duplicate_flag == "1":
                 # Run the downloader with the duplicate check
                 asyncio.run(downloader.main())
@@ -227,7 +237,7 @@ if __name__ == "__main__":
                 break
             else:
                 # Log a message for invalid duplicate check selection
-                logging.info("Invalid duplicate check selection code")
+                logging.info("Invalid duplicate check selection code")          
         else:
             # Log a message for incorrect downloader type input
             logging.error("Wrong command")

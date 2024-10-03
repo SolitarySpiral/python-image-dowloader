@@ -31,8 +31,9 @@ def get_hash(filename: Path, first_chunk_only=False, hash_algo=hashlib.sha256):
 
 def check_for_duplicates(path: Path) -> int:
     """Checks files under the given directory path for duplicates and removes them."""
-    hashes_by_size = defaultdict(list)
-    hashes_on_1k = defaultdict(list)
+    hashes_by_size = defaultdict(list)  
+    hashes_on_1k = defaultdict(list) 
+
     hashes_full = {}
 
     files = list(path.glob("*.*"))
@@ -52,7 +53,7 @@ def check_for_duplicates(path: Path) -> int:
     with ThreadPoolExecutor() as executor:
         executor.map(hash_first_1k, [fp for flist in hashes_by_size.values() for fp in flist if len(flist) > 1])
 
-    # Check full file hash for actual duplicates
+     # Check full file hash for actual duplicates
     duplicates = []
 
     def check_full_hash(file_path):
@@ -83,3 +84,4 @@ def handle_photo_processing(photos, photos_path, duplicateflag):
         logging.info(f"Total downloaded: {len(photos) - duplicates_count} photo")
     else:
         logging.info(f"Total downloaded: {len(photos)} photo")
+
