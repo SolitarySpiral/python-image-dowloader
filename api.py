@@ -1,4 +1,5 @@
 """Web API functions."""
+
 import logging
 import struct
 import time
@@ -6,137 +7,111 @@ from helpers import sanitize_tag, create_tag_filepath, create_post_filepath
 from itertools import chain
 import aiohttp
 import aiofiles
-import asyncio
-#from main imported
-from helpers import tag_counts
+
+# from main imported
 import requests
-import os, re, shutil
+import os
+import re
+import shutil
 from datetime import datetime
 from dacite import from_dict
 from pathlib import Path
 from data import Post
 from exceptions import InvalidTagFormat
 from rule34Py import rule34Py
-from rule34Py.__vars__ import __headers__
+
 r34Py = rule34Py()
 #end main imported
 #semaphoreNozomiFile = asyncio.Semaphore(16)
 
-async def async_nozomi_download_file(session, semaphoreNozomi, url: str, blacklist: list[str], relevant_post_date = None):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Referer': 'https://nozomi.la/',
-        'Upgrade-Insecure-Requests': '1'
-    }
+
+headersNozomi = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Referer": "https://nozomi.la/",
+    "Upgrade-Insecure-Requests": "1",
+}
+
+
+headersR34 = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Referer": "https://wimg.rule34.xxx/",
+    "Upgrade-Insecure-Requests": "1",
+}
+
+
+async def async_nozomi_download_file(
+        session, semaphoreNozomi, url: str, blacklist: list[str], relevant_post_date = None
+):
     filepath = Path.cwd()
-    if relevant_post_date is None:
-        relevant_post_date = datetime.strptime("1900-01-01", '%Y-%m-%d')
+    relevant_post_date = relevant_post_date or datetime.strptime(
+        "1900-01-01", "%Y-%m-%d"
+    )
     filepath.mkdir(parents=True, exist_ok=True)
     try:
-        #async with semaphoreNozomi:
-            async with session.get(url) as response:
-                post_data = await response.json()
-                current_post = from_dict(data_class=Post, data=post_data)
-                post_date = datetime.strptime(current_post.date, '%Y-%m-%d %H:%M:%S-%f')
-                norm_post_date = datetime.strftime(post_date, '%Y-%m-%d %H%M%S')
-                if post_date > relevant_post_date:
-                    current_post_tag_list = []
-                    for i in range(len(current_post.artist)):
-                        current_post_tag_list.append(current_post.artist[i].tag)
-                    for i in range(len(current_post.character)):
-                        current_post_tag_list.append(current_post.character[i].tag)
-                    for i in range(len(current_post.copyright)):
-                        current_post_tag_list.append(current_post.copyright[i].tag)
-                    for i in range(len(current_post.general)):
-                        current_post_tag_list.append(current_post.general[i].tag)
+        async with session.get(url) as response:
+            post_data = await response.json()
+        current_post = from_dict(data_class=Post, data=post_data)
+        post_date = datetime.strptime(current_post.date, '%Y-%m-%d %H:%M:%S-%f')
+        norm_post_date = datetime.strftime(post_date, '%Y-%m-%d %H%M%S')
 
-                    for tag in current_post_tag_list:
-                        if not tag == '':
-                            tag_counts[tag] += 1 
-                    #print(tag_counts.items())
-                    if not len(set(current_post_tag_list).intersection(blacklist)) > 0:
-                        nozomi_img_counter = 1
-                        img_tasks = []
-                        for media_meta_data in current_post.imageurls:
-                            filename = f'{norm_post_date}-{nozomi_img_counter}-{media_meta_data.dataid}.{media_meta_data.type}'
-                            filename = re.sub('[<>/:#%]', '', filename)
-                            image_filepath = filepath.joinpath(filename)
-                            print(media_meta_data.imageurl, image_filepath)
-                            if os.path.exists(image_filepath):
-                                print('File already exist', image_filepath)
-                                nozomi_img_counter += 1
-                            else:
-                                #print('File not exists', image_filepath)
-                                #img_tasks.append(asyncio.create_task(nozomi_file_saver(session, semaphoreNozomi, media_meta_data.imageurl, image_filepath)))
-                                async with semaphoreNozomi:
-                                    async with session.get(media_meta_data.imageurl, headers=headers) as r:
-                                        async with aiofiles.open(image_filepath, 'wb') as f:
-                                            while True:
-                                                chunk = await r.content.read()
-                                                if not chunk:
-                                                    break
-                                                await f.write(chunk)
-                                
-                                print('File is downloaded', image_filepath)
-                                nozomi_img_counter += 1
-                        await asyncio.gather(*img_tasks)
-                    else:
-                        print('Post in blacklist', current_post.postid)
-                    
+        if post_date > relevant_post_date:
+            current_post_tag_list = [
+                tag.tag
+                for tag_list in [
+                    current_post.artist,
+                    current_post.character,
+                    current_post.copyright,
+                    current_post.general,
+                ]
+                for tag in tag_list
+                if tag.tag
+            ]
+            #for tag in current_post_tag_list:
+            #    tag_counts[tag] += 1
+            
+            if not set(current_post_tag_list).intersection(blacklist):
+                for nozomi_img_counter, media_meta_data in enumerate(
+                    current_post.imageurls, start=1
+                ):
+                    filename = re.sub(
+                        "[<>/:#%]",
+                        "",
+                        f"{norm_post_date}-{nozomi_img_counter}-{media_meta_data.dataid}.{media_meta_data.type}",
+                    )
+                    image_filepath = filepath.joinpath(filename)
+                    print(media_meta_data.imageurl, image_filepath)
+
+                    if not os.path.exists(image_filepath):
+                        async with semaphoreNozomi, session.get(
+                            media_meta_data.imageurl, headers=headersNozomi
+                        ) as r:
+                            async with aiofiles.open(image_filepath, 'wb') as f:
+                                async for chunk in r.content.iter_chunked(1024):
+                                    await f.write(chunk)
+                        print('File is downloaded', image_filepath)
+            else:
+                print('Post in blacklist', current_post.postid)                 
     except aiohttp.ClientError as e:
         return e
     except Exception as ex:
         return ex
     
-'''async def nozomi_file_saver(session, semaphoreNozomi, url, image_filepath):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Referer': 'https://nozomi.la/',
-        'Upgrade-Insecure-Requests': '1'
-    }
-    async with semaphoreNozomiFile:
-        async with session.get(url, headers=headers) as r:
-            async with aiofiles.open(image_filepath, 'wb') as f:
-                while True:
-                    chunk = await r.content.read(4096)
-                    if not chunk:
-                        break
-                    await f.write(chunk)
-            print('File downloaded', image_filepath)'''
-
 async def async_r34_download_file(session, semaphore34, url, file_name):
-    #res = requests.get(url, stream = True)
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Referer': 'https://wimg.rule34.xxx/',
-        'Upgrade-Insecure-Requests': '1'
-    }
     try:
         file_name = re.sub('[/:+#%]', '', file_name)
-        if os.path.exists(file_name):
-            print('File already exist', file_name)
-        else:
-            #print('File not exists', file_name)
-            async with semaphore34:
-                async with session.get(url, headers=headers) as r:
-                    assert r.status == 200
-                    #with open(file_name, 'wb') as f:
-                    async with aiofiles.open(file_name, 'wb') as f:
-                        #await shutil.copyfileobj(r.raw, f)
-                        while True:
-                            chunk = await r.content.read()
-                            if not chunk:
-                                break
-                            await f.write(chunk)
+        if not os.path.exists(file_name):
+            async with semaphore34, session.get(
+                url, headers=headersR34
+            ) as r:
+                async with aiofiles.open(file_name, 'wb') as f:
+                    async for chunk in r.content.iter_chunked(1024):
+                        await f.write(chunk)
             print('File is downloaded', file_name)
     except aiohttp.ClientError as e:
         return e

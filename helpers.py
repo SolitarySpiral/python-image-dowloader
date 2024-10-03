@@ -8,7 +8,8 @@ the simplicity of the current API, there isn't really a point right now.
 
 """
 import json
-import re, os
+import re
+import os
 from typing import ForwardRef
 from collections import defaultdict
 from exceptions import InvalidTagFormat, InvalidUrlFormat
@@ -16,30 +17,30 @@ from exceptions import InvalidTagFormat, InvalidUrlFormat
 
 # Prevent circular dependency issues
 MediaMetaData = ForwardRef("MediaMetaData")
-# defaultdic используется для подсчета тегов суммарно по всем постам конкретной группы. Следующие 3 функции используются в одной связке.
+# defaultdict is used to count tags in total across all posts of a specific group. The following 3 functions are used together.
 tag_counts = defaultdict(int)
 
-# загружает словарь, если он уже существует
+# loads the dictionary if it already exists
 def load_dictionary(file_path):
     try:
-        with open(file_path, 'r', encoding="utf-8") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             dictionary = json.load(file)
     except Exception as e:
-        print('Получена ошибка загрузки словаря:', e)
+        print("I received an error loading the dictionary:", e)
     finally:
         os.remove(file_path)
         dictionary = {}
-        print('удалили словарь', file_path)
+        print("deleted dictionary", file_path)
     return dictionary
 
-# сохраняет словарь 
+# saves the dictionary.
 def save_dictionary(dictionary, file_path):
     with open(file_path, 'w', encoding="utf-8") as file:
         for tag, count in dictionary.items():
             file.write(f"{tag}: {count}\n")
-        #json.dump(dictionary, file)
 
-# производит слияние существующего словаря и список тегов из дозагрузки
+
+# merges the existing dictionary with a list of tags from an additional load.
 def merge_dictionaries(dictionary1, dictionary2):
     merged_dictionary = dictionary1.copy()
     for key, value in dictionary2.items():
@@ -63,13 +64,6 @@ def sanitize_tag(tag: str) -> str:
 
     """
     try:
-        '''
-        sanitized_tag = tag
-        if not 'artist:' in sanitized_tag:
-            sanitized_tag = tag.lower().strip()
-            sanitized_tag = re.sub('[/#%]', '', sanitized_tag)
-            _validate_tag_sanitized(sanitized_tag)
-        '''
         sanitized_tag = tag.lower().strip()
         sanitized_tag = re.sub('[/#%]', '', sanitized_tag)
         _validate_tag_sanitized(sanitized_tag)
