@@ -128,20 +128,30 @@ async def async_r34_download_file(session, semaphore34, url, file_name):
 
 def get_urls_list(
     positive_tags: list[str],
-    extra_tags: list[str] = None,
-    downloads_dir: Path = Path("./"),
+    extra_tags: list[str] = None#,
+    #downloads_dir: Path = Path("./"),
 ) -> list[str]:
     extra_tags = extra_tags or []
 
     try:
-        positive_post_urls = obtain_urls_from_tags(positive_tags)
-        extra_post_urls = obtain_urls_from_tags(extra_tags)
+        positive_post_urls = _get_post_urls(positive_tags)
+        extra_post_urls = _get_post_urls(extra_tags)
+        relevant_post_urls = set(positive_post_urls + list(set(extra_post_urls) - set(positive_post_urls)))
+        relevant_post_urls = list(relevant_post_urls)
+        relevant_post_urls.sort()
+        return relevant_post_urls
+    
+        #DELETED postids file function
+        """
+        #positive_post_urls = obtain_urls_from_tags(positive_tags)
+        #extra_post_urls = obtain_urls_from_tags(extra_tags)
 
-        relevant_post_urls = sort_and_combine_urls(positive_post_urls, extra_post_urls)
-        existing_postids = load_existing_postids(downloads_dir)
-        filtered_urls = filter_urls(relevant_post_urls, existing_postids)
+        #relevant_post_urls = sort_and_combine_urls(positive_post_urls, extra_post_urls)
+        #existing_postids = load_existing_postids(downloads_dir)
+        #filtered_urls = filter_urls(relevant_post_urls, existing_postids)
 
-        return filtered_urls
+        #return filtered_urls
+        """
 
     except Exception as e:
         raise e
@@ -237,6 +247,9 @@ def _get_post_urls(tags: list[str]) -> list[str]:
     Returns:
         A list of post urls that contain all of the specified tags.
     """
+
+    #BUG: skips the list of urls for extra tags and loads few posts as a result
+    """
     if not tags:
         return []
 
@@ -255,6 +268,39 @@ def _get_post_urls(tags: list[str]) -> list[str]:
         print("No intersection for tags.", sanitized_tags)
 
     return [create_post_filepath(post_id) for post_id in unic_post_ids]
+    """
+    
+    unic_post_ids = []
+    if len(tags) == 0:
+        return tags
+    
+    sanitized_tags = [sanitize_tag(tag) for tag in tags]
+    nozomi_urls = []
+    for tag in tags:
+        if not tag.islower():
+            nozomi_urls.append(create_tag_filepath(tag))
+        #elif tag.isalpha():
+        #    nozomi_urls.append(create_tag_filepath(tag))
+        else:
+            nozomi_urls.append(create_tag_filepath(sanitize_tag(tag)))
+    tag_post_ids = [_get_post_ids(nozomi_url) for nozomi_url in nozomi_urls]
+    flat_list = list(chain.from_iterable(tag_post_ids))
+    if len(tags) == 1:
+        for i in range(len(flat_list)): # artist with upper letters
+            if not flat_list.count(flat_list[i]) >= 2:
+                unic_post_ids.append(flat_list[i])
+    else:
+        for i in range(len(flat_list)): # artist with upper letters
+            if not flat_list.count(flat_list[i]) >= 2:
+                unic_post_ids.append(flat_list[i])
+            if flat_list.count(flat_list[i]) >= 2:
+                unic_post_ids.append(flat_list[i])
+
+    if len(unic_post_ids) == 0:
+        print('Нет пересечения для тегов',sanitized_tags)
+    post_urls = [create_post_filepath(post_id) for post_id in unic_post_ids]
+
+    return post_urls
 
 
 # Helper functions for _get_post_urls
