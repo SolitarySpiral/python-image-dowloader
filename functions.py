@@ -11,7 +11,7 @@ from tqdm.asyncio import tqdm
 async def download_photos(photos: list, headers):
     session_timeout = aiohttp.ClientTimeout(total=None,sock_connect=None,sock_read=None)
     async with aiohttp.ClientSession(
-        connector=aiohttp.TCPConnector(limit=16),
+        connector=aiohttp.TCPConnector(limit=10),
         timeout=session_timeout
     ) as session:
         filepath = Path.cwd()
@@ -43,9 +43,9 @@ async def download_photo(
                 else:
                     logging.info("problem to download file: {}. Error: {}".format(response.status, response.content))
     except asyncio.exceptions.__all__ as e:
-        print(e)
+        logging.error("problem with asyncio: {}".format(e))
     except Exception as e:
-        print(e)
+        logging.error("Other error in download_photo: {}".format(e))
 
 def download_time_log(photos, download_time):
     logging.info(
