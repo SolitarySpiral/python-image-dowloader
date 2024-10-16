@@ -7,7 +7,7 @@ asyncio==3.4.3
 attrs==24.2.0
 beautifulsoup4==4.12.3
 certifi==2024.8.30
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
 colorama==0.4.6
 dacite==1.8.1
 frozenlist==1.4.1
