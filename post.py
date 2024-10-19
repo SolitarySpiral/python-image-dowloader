@@ -1,5 +1,5 @@
 from datetime import datetime
-class Post:
+class r34Post:
     
     @staticmethod
     def from_json(json):        
@@ -23,7 +23,7 @@ class Post:
         else:
             file_type = "image"
             
-        return Post(pId, pHash, pScore, pSize, pFileUrl, pImage, preview, sample, pOwner, pTags, file_type, directory, change)
+        return r34Post(pId, pHash, pScore, pSize, pFileUrl, pImage, preview, sample, pOwner, pTags, file_type, directory, change)
     #(pId, pHash, pScore, pSize, pFileUrl, pImage, preview, sample, pOwner, pTags, img_type, directory, change)
 
     @staticmethod
@@ -49,7 +49,7 @@ class Post:
         else:
             file_type = "image"
             
-        return Post(pId, pHash, pScore, pSize, pFileUrl, pImage, preview, sample, pOwner, pTags, file_type, change, date)
+        return r34Post(pId, pHash, pScore, pSize, pFileUrl, pImage, preview, sample, pOwner, pTags, file_type, change, date)
     
     def __init__(self, id: int, hash: str, score: int, size: list, fileurl: str,  image: str, preview: str, sample: str, owner: str, tags: list, file_type: str, change: int, date: str):
         self._file_type = file_type
