@@ -411,6 +411,9 @@ class Utils:
                 file.write(str(id) + "\n")
 
 class Download:
+    def __init__(self) -> None:
+        self.sem = asyncio.Semaphore(3)
+
     async def download_photos(self, photos: list, headers):
         session_timeout = aiohttp.ClientTimeout(total=None)
         async with aiohttp.ClientSession(
@@ -418,7 +421,7 @@ class Download:
             trust_env = True,
             timeout=session_timeout,
             raise_for_status=True
-        ) as session:
+        ) as session, self.sem:
             filepath = Path.cwd()
             futures = [
                 self._download_photo(
@@ -432,7 +435,7 @@ class Download:
                 for photo in photos
             ]
 
-            for future in tqdm(asyncio.as_completed(futures), total=len(futures)):
+            for future in tqdm.as_completed(futures, desc='Getting photos', unit='photos'):
                 await future
 
     async def _download_photo(
@@ -456,7 +459,7 @@ class Download:
                         async with aiofiles.open(postids_file, "a") as f:
                             await f.write(f"{postid}\n")
                     else:
-                        logging.info("problem to download file: {}. Error: {}".format(response.status, response.content))
+                        logging.error("problem to download file: {}. Error: {}".format(response.status, response.content))
         except asyncio.exceptions.__all__ as e:
             logging.error("problem with asyncio: {}".format(e))
         except Exception as e:
@@ -489,18 +492,24 @@ class NozomiDownloader:
             ) # Assuming utils.create_dir is previously defined
             logging.info(photos_path)
 
-            logging.info("Requesting a list of urls from file")
-            urls_from_file = utils.load_existing_postids(photos_path)
             logging.info("Requesting a list of urls")
 
             url_list = self.get_urls_list(
                 internal_pos, 
                 internal_ext
             )
-            #print(urls_from_file)
+            logging.info("We have got %s of urls" % len(url_list))
+
+            logging.info("Requesting a list of urls from file")
+            urls_from_file = utils.load_existing_postids(photos_path)
+
             if urls_from_file:
+                logging.info("We have got %s of urls from file" % len(urls_from_file))
+                logging.info("Filtering a list of urls")
                 filtered_urls = utils.filter_urls(url_list, urls_from_file)
+                logging.info("Filtered urls now we have %s" % len(filtered_urls))
             else:
+                logging.info("No urls from file")
                 filtered_urls = url_list
 
             self.photos = []
@@ -512,7 +521,7 @@ class NozomiDownloader:
                         self.get_posts(session, url, internal_neg) for url in filtered_urls
                     ]
 
-                    for future in tqdm(asyncio.as_completed(futures), total=len(futures)):
+                    for future in tqdm.as_completed(futures, desc='Getting posts', unit='posts'):#tqdm(asyncio.as_completed(futures), total=len(futures)):
                         await future
                 
                 os.chdir(photos_path)               
@@ -780,11 +789,11 @@ class Rule34Downloader:
         relevant_post_urls = []
         relevant_post_filenames = []
         relevant_post_ids = []
-        print(positive_tags, extra_tags, negative_tags)
+        print(positive_tags, extra_tags, negative_tags, sep='\n', end='\n\n')
 
         try:
             if extra_tags is None or extra_tags == []:
-                print("gone out extra")
+                logging.info("gone out extra")
                 extra_tags = list()
                 search_pos = self.search(positive_tags, negative_tags)
                 # print('search_pos =',search_pos)
@@ -804,7 +813,7 @@ class Rule34Downloader:
                         d.append(c)
                         c = []
             else:
-                print("went to extra")
+                logging.info("went to extra")
                 search_ext = []
                 search_pos = self.search(positive_tags, negative_tags)
                 for tag in extra_tags:
@@ -919,7 +928,7 @@ class Rule34Downloader:
         }
         
         formatted_url = self._parseUrlParams(url, params)
-        print('первый url',formatted_url+f'&pid={counter_pid}')
+        logging.info('The first url: %s&pid=%s' % formatted_url, counter_pid)
         response = requests.get(formatted_url+f'&pid={counter_pid}', headers=__headers__) #&json=1', stream=True
         #print(response.encoding)
         no_pid_url = formatted_url
@@ -936,6 +945,7 @@ class Rule34Downloader:
         #print(response.text)
         #print(response.content)
         if res_status != 200 or res_len <= 0:
+            logging.error("An error occurred with status %s" % res_status)
             return ret_posts
         
         soup = BeautifulSoup(response.content, 'xml')
@@ -954,11 +964,11 @@ class Rule34Downloader:
         [ret_posts.append(small_part_posts[i]) for i in range(len(small_part_posts))]
         
         while len(small_part_posts) == 100:
-            print('получили small_part_posts', len(small_part_posts))
+            logging.info('Whe have got small_part_posts %s' % len(small_part_posts))
             small_part_posts = []
             counter_pid+=1
             formatted_url = f'{no_pid_url}&pid={counter_pid}'
-            print(formatted_url)
+            logging.info('The next url: %s' % formatted_url)
             try:
                 response2 = requests.get(formatted_url,  headers=__headers__)
                 print(response2)
@@ -973,7 +983,7 @@ class Rule34Downloader:
                         if tag != '':
                             tag_counts[tag] += 1 
                     small_part_posts.append(_post)#(Post.from_xml(post))
-                print('вторая проверка small_part_posts',len(small_part_posts))
+                logging.info('The second checking small_part_posts %s' % len(small_part_posts))
 
             except Exception as e:
                 logging.exception('error while accessing the dict')
@@ -983,7 +993,7 @@ class Rule34Downloader:
             time.sleep(0.2)
             
         #[ret_posts.append(small_part_posts[i]) for i in range(len(small_part_posts))]
-        print('всего получили внутри search',len(ret_posts))
+        logging.info('All we have got in search %s' % len(ret_posts))
         return ret_posts
 
     def _parseUrlParams(self, url: str, params: list) -> str:
