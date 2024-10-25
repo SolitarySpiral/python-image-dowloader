@@ -412,12 +412,12 @@ class Utils:
 
 class Download:
     def __init__(self) -> None:
-        self.sem = asyncio.Semaphore(5)
+        self.sem = asyncio.Semaphore(8)
 
     async def download_photos(self, photos: list, headers):
         session_timeout = aiohttp.ClientTimeout(total=None)
         async with aiohttp.ClientSession(
-            connector=aiohttp.TCPConnector(limit=5),
+            connector=aiohttp.TCPConnector(limit=8),
             trust_env = True,
             timeout=session_timeout,
             raise_for_status=True
@@ -480,6 +480,7 @@ class Download:
                 numeral.get_plural(download_time, "second, seconds, seconds"),
             )
         )
+
     async def async_gather_with_progress(self, *futures):
         tasks = [asyncio.create_task(future) for future in futures]
         progress_bar = tqdm(total=len(tasks), desc='Getting photos', unit='photos')
@@ -944,7 +945,7 @@ class Rule34Downloader:
         }
         
         formatted_url = self._parseUrlParams(url, params)
-        logging.info('The first url: %s&pid=%s' % formatted_url, counter_pid)
+        logging.info('The first url: %s&pid=%s' % (formatted_url, counter_pid))
         response = requests.get(formatted_url+f'&pid={counter_pid}', headers=__headers__) #&json=1', stream=True
         #print(response.encoding)
         no_pid_url = formatted_url
@@ -952,7 +953,7 @@ class Rule34Downloader:
         res_len = len(response.content)
         ret_posts = []
         small_part_posts = []
-        time.sleep(1)
+        time.sleep(0.5)
         # checking if status code is not 200
         # (it's useless currently, becouse rule34.xxx returns always 200 OK regardless of an error)
         # and checking if content lenths is 0 or smaller
@@ -987,7 +988,7 @@ class Rule34Downloader:
             logging.info('The next url: %s' % formatted_url)
             try:
                 response2 = requests.get(formatted_url,  headers=__headers__)
-                print(response2)
+                #print(response2)
                 soup2 = BeautifulSoup (response2.content, 'xml')
                 myposts2 = soup2.find_all("post")
                 for post in myposts2:
