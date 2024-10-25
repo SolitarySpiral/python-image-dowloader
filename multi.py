@@ -88,7 +88,7 @@ def get_multi(from_r34: bool):
         small_multilist = []
     else:        # NOZOMI list tags
         #--персонажи
-        '''positive_tags = ['Riley_Anderson']
+        positive_tags = ['Riley_Anderson']
         extra_tags = ['Riley', 'rileyandersen', 'riley_andersen']
         negative_tags = []
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
@@ -121,7 +121,7 @@ def get_multi(from_r34: bool):
         negative_tags = []
         small_multilist.extend((positive_tags, extra_tags, negative_tags))
         full_multilist.append(small_multilist)
-        small_multilist = []'''
+        small_multilist = []
         #25
         positive_tags = ['kuroki_tomoko']
         extra_tags = ['黒木智子']
