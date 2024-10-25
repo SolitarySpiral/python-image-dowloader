@@ -412,12 +412,12 @@ class Utils:
 
 class Download:
     def __init__(self) -> None:
-        self.sem = asyncio.Semaphore(3)
+        self.sem = asyncio.Semaphore(5)
 
     async def download_photos(self, photos: list, headers):
         session_timeout = aiohttp.ClientTimeout(total=None)
         async with aiohttp.ClientSession(
-            connector=aiohttp.TCPConnector(limit=3),
+            connector=aiohttp.TCPConnector(limit=5),
             trust_env = True,
             timeout=session_timeout,
             raise_for_status=True
@@ -434,9 +434,16 @@ class Download:
                 )
                 for photo in photos
             ]
+            
+            # 1) is slow 2 rps
+            #for future in tqdm.as_completed(futures, desc='Getting photos', unit='photos'):
+            #    await future
 
-            for future in tqdm.as_completed(futures, desc='Getting photos', unit='photos'):
-                await future
+            # 2) gather is better, but no have progressbar
+            #await asyncio.gather(*futures)
+
+            # 3) gather wih custom progressbar 1+2
+            await self.async_gather_with_progress(*futures)
 
     async def _download_photo(
             self,
@@ -473,6 +480,15 @@ class Download:
                 numeral.get_plural(download_time, "second, seconds, seconds"),
             )
         )
+    async def async_gather_with_progress(self, *futures):
+        tasks = [asyncio.create_task(future) for future in futures]
+        progress_bar = tqdm(total=len(tasks), desc='Getting photos', unit='photos')
+
+        for task in asyncio.as_completed(tasks):
+            await task
+            progress_bar.update(1)
+
+        progress_bar.close()
 
 class NozomiDownloader:
     def __init__(self, huge_tag_list: list) -> None:
