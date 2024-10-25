@@ -953,7 +953,7 @@ class Rule34Downloader:
         res_len = len(response.content)
         ret_posts = []
         small_part_posts = []
-        time.sleep(1)
+        time.sleep(0.5)
         # checking if status code is not 200
         # (it's useless currently, becouse rule34.xxx returns always 200 OK regardless of an error)
         # and checking if content lenths is 0 or smaller
@@ -988,7 +988,7 @@ class Rule34Downloader:
             logging.info('The next url: %s' % formatted_url)
             try:
                 response2 = requests.get(formatted_url,  headers=__headers__)
-                print(response2)
+                #print(response2)
                 soup2 = BeautifulSoup (response2.content, 'xml')
                 myposts2 = soup2.find_all("post")
                 for post in myposts2:
