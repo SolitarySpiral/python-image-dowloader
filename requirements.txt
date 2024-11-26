@@ -20,7 +20,7 @@ propcache==0.2.0
 pytils==0.4.1
 requests==2.32.3
 soupsieve==2.6
-tqdm==4.66.6
+tqdm==4.67.1
 typing_extensions==4.12.2
 urllib3==2.2.3
 yarl==1.18.0
