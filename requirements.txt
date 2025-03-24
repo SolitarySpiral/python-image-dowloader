@@ -10,7 +10,7 @@ bs4==0.0.2
 certifi==2024.8.30
 charset-normalizer==3.4.0
 colorama==0.4.6
-dacite==1.8.1
+dacite==1.9.2
 et-xmlfile==2.0.0
 frozenlist==1.5.0
 idna==3.10
