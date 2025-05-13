@@ -4,6 +4,7 @@ import math
 import time
 import logging
 
+import aiohttp.client_exceptions
 from pytils import numeral
 from datetime import datetime
 from dacite import from_dict
@@ -148,7 +149,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger("api_logger")
-logger.disabled = True
+#logger.disabled = True
 
 loop = asyncio.get_event_loop()
 
@@ -412,12 +413,12 @@ class Utils:
 
 class Download:
     def __init__(self) -> None:
-        self.sem = asyncio.Semaphore(8)
+        self.sem = asyncio.Semaphore(3)
 
     async def download_photos(self, photos: list, headers):
         session_timeout = aiohttp.ClientTimeout(total=None)
         async with aiohttp.ClientSession(
-            connector=aiohttp.TCPConnector(limit=8),
+            connector=aiohttp.TCPConnector(limit=6),
             trust_env = True,
             timeout=session_timeout,
             raise_for_status=True
@@ -466,11 +467,17 @@ class Download:
                         async with aiofiles.open(postids_file, "a") as f:
                             await f.write(f"{postid}\n")
                     else:
-                        logging.error("problem to download file: {}. Error: {}".format(response.status, response.content))
+                        logging.error("problem to download file: {}. Error: {}".format(response.status, photo_url))
+                        pass
+        except aiohttp.client_exceptions.ClientResponseError as e:
+            logging.error("ResponseError: {}".format(e))
+            pass
         except asyncio.exceptions.__all__ as e:
             logging.error("problem with asyncio: {}".format(e))
+            pass
         except Exception as e:
             logging.error("Other error in download_photo: {}".format(e))
+            pass
 
     def download_time_log(self, photos, download_time):
         logging.info(
@@ -486,7 +493,11 @@ class Download:
         progress_bar = tqdm(total=len(tasks), desc='Getting photos', unit='photos')
 
         for task in asyncio.as_completed(tasks):
-            await task
+            try:
+                await task
+            except Exception as e:
+                print('Got an exception:', e)
+
             progress_bar.update(1)
 
         progress_bar.close()
@@ -531,8 +542,10 @@ class NozomiDownloader:
 
             self.photos = []
             if len(filtered_urls) != 0:
+                session_timeout = aiohttp.ClientTimeout(total=None)
                 async with aiohttp.ClientSession(
-                    connector=aiohttp.TCPConnector(limit=8)
+                    connector=aiohttp.TCPConnector(limit=16),
+                    timeout=session_timeout
                 ) as session:
                     futures = [
                         self.get_posts(session, url, internal_neg) for url in filtered_urls
@@ -656,6 +669,7 @@ class NozomiDownloader:
         Returns:
             A list containing all of the post IDs that contain the tag.
         """
+        post_ids = []
         try:
             #response = fetch_nozomi_file(tag_filepath_url)
             headers = {"Accept-Encoding": "gzip, deflate, br"}
@@ -739,8 +753,10 @@ class NozomiDownloader:
                 else:
                     raise Exception(f"Failed to fetch data, status: {response.status}")
         except Exception as e:
+            raise e
             self.errors.append(f"Error fetching {url}: {e}")
-            print(f"Error fetching {url}: {e}")
+            #print(f"Error fetching {url}: {e}")
+            logging.error('Error fetching %s: %s' % (url, e))
 
 class Rule34Downloader:
     def __init__(self, huge_tag_list: list) -> None:
