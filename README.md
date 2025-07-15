@@ -1,6 +1,7 @@
 # python image-downloader
 
 nozomi.la API with rule34 API in Python.
+- Выведено из эксплуатации. Нецелевое решение. nozomi.la больше не рабоает.
 
 # Release 4.1.0
 - interactive launch
